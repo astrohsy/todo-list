@@ -2,14 +2,22 @@ import * as Redis from "ioredis";
 
 type Key = string;
 type Value = object|string|number;
-const group = 'todo';
+
+interface TodoStorageConfigurations {
+    isTest: boolean;
+}
 
 export class TodoStorage {
     private readonly redisClient;
 
-    constructor() {
-        // Connect to a real redis server
-        this.redisClient = new Redis({ dropBufferSupport: true });
+    constructor(config?: TodoStorageConfigurations) {
+        if (config !== undefined && config.isTest === true) {
+            // For mocking
+            this.redisClient = Redis.prototype;
+        } else {
+            // Connect to a real redis server
+            this.redisClient = new Redis({ dropBufferSupport: true });
+        }
     }
 
     async set(key: Key, value: Value) {
