@@ -1,39 +1,53 @@
 import { Injectable } from '@nestjs/common';
-import * as Redis from "ioredis";
 
 import { Todo } from './interfaces/todo.interface';
+import { TodoStorage } from '../utils/storage/storage';
 
 @Injectable()
 export class TodosService {
   private readonly todos: Todo[] = [];
-  private readonly redisClient: Redis.Redis;
+  private readonly storage: TodoStorage;
 
   constructor() {
+    this.storage = new TodoStorage();
+  }
 
-    if (process.env.NODE_ENV === 'test') {
-      // Allow mocking
-      this.redisClient = Redis.prototype;
+  async create(todo: Todo): Promise<Todo> {
+    const newTodo: Todo = {
+      ...todo
+    };
+
+    /* Case 1: has duplicate references */
+    newTodo.references = newTodo.references.filter((v, i, a) => a.indexOf(v) === i); 
+
+    /* Case 2: Reference is not exist */
+    const references = await Promise.all(
+      newTodo.references.map(async (value) => {
+        return this.storage.get('todo:' + value);
+      })
+    )
+
+    if (references.filter((v) => v == null).length === 0) {
+      /* Issue new Id */
+      const id = await this.storage.getTodoIndex();
+      newTodo.id = Number(id);
+
+      await this.storage.set('todo:' + id, newTodo);
+      return newTodo;
     } else {
-      // Connect to a real redis server
-      this.redisClient = new Redis();
+      return null;
     }
-
   }
 
-  create(todo: Todo) {
-    this.redisClient.set('1', '2');
-    this.todos.push(todo);
-  }
-
-  findAll(): Todo[] {
+  async findAll(): Promise<Todo[]> {
     return this.todos;
   }
 
-  update(todo: Todo) {
+  async update(todo: Todo) {
     // TODO: implement update
   }
 
-  delete(id: number) {
+  async delete(id: number) {
     // TODO: implement delete
   }
 }

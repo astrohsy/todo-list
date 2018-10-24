@@ -1,14 +1,13 @@
 import 'jest';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import * as Redis from 'ioredis';
 
 import { TodosService } from './todos.service';
 import { Todo } from './interfaces/todo.interface';
+import { TodoStorage } from '../utils/storage/storage';
 
 describe('TodosService', () => {
   let service: TodosService;
-  let redisClient = Redis.prototype;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -18,73 +17,106 @@ describe('TodosService', () => {
   });
 
   describe('create', () => {
-    const item: Todo = {
-      text: 'test1',
-      references: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      completedAt: null
-    }
 
-    it('should create todo', () => {
-      jest.spyOn(redisClient, 'get').mockImplementation(() => 1);
-      const mockSet = jest.spyOn(redisClient, 'set').mockImplementation(() => {});
+    it('should create todo', async () => {
+      let mockTodoIndex = 0;
 
-      service.create(item)
-      expect(mockSet).toHaveBeenCalledWith(
-        'todo#1',
-        JSON.stringify(item)
-      );
-    });
+      const getMock = jest.spyOn(TodoStorage.prototype, 'get');
+      getMock.mockImplementationOnce(jest.fn(() => {
+        return Promise.resolve(1);
+      }));
 
-    it('should not create todo with invalid reference', () => {
-      jest.spyOn(redisClient, 'get').mockImplementation((key) => {
-        if (key === 'todoIndex') {
-          return new Promise( (resolve, reject) => resolve(1));
-        } else {
-          // When referenced todo is not exist
-          return new Promise( (resolve, reject) => reject('no key has set'));
-        }
-      });
-      const mockSet = jest.spyOn(redisClient, 'set').mockImplementation(() => {});
+      const setMock = jest.spyOn(TodoStorage.prototype, 'set');
+      setMock.mockImplementationOnce(jest.fn(() => {
+        return Promise.resolve();
+      }));
 
-      service.create(item)
-      // It should not be called
-      expect(mockSet).not.toHaveBeenCalled();
-    });
+      const getTodoIndexMock = jest.spyOn(TodoStorage.prototype, 'getTodoIndex');
+      getTodoIndexMock.mockImplementationOnce(jest.fn(() => {
+        mockTodoIndex += 1;
+        return Promise.resolve(mockTodoIndex);
+      }));
 
-    it('should create todo with unique reference numbers', () => {
-      jest.spyOn(redisClient, 'get').mockImplementation((key) => {
-        if (key === 'todoIndex') {
-          return new Promise( (resolve, reject) => resolve(1));
-        } else {
-          // All todos are exist
-          return new Promise( (resolve, reject) => reject('no key has set'));
-        }
-      });
-      const mockSet = jest.spyOn(redisClient, 'set').mockImplementation(() => {});
-
-      const itemWithDuplicateReferences: Todo = {
-        text: 'test1',
-        references: [1, 1, 2, 2, 3],
+      const item: Todo = {
+        text: 'test',
+        references: [1],
         createdAt: new Date(),
         updatedAt: new Date(),
         completedAt: null
-      };
+      }
 
-      const expectedItem: Todo = {
-        text: 'test1',
+      await service.create(item);
+
+      item.id = mockTodoIndex;
+      expect(setMock).toHaveBeenCalledWith('todo:' + mockTodoIndex, item);
+    });
+
+    it('should not create todo with invalid reference', async () => {
+      let mockTodoIndex = 0;
+
+      const getMock = jest.spyOn(TodoStorage.prototype, 'get');
+      getMock.mockImplementation(jest.fn((key) => {
+        if (key === 'todo:3') Promise.reject('invalid key');
+        else return Promise.resolve(key);
+      }));
+
+      const setMock = jest.spyOn(TodoStorage.prototype, 'set');
+      setMock.mockImplementation(jest.fn(() => {
+        return Promise.resolve();
+      }));
+      setMock.mockClear();
+
+      const getTodoIndexMock = jest.spyOn(TodoStorage.prototype, 'getTodoIndex');
+      getTodoIndexMock.mockImplementation(jest.fn(() => {
+        mockTodoIndex += 1;
+        return Promise.resolve(mockTodoIndex);
+      }));
+
+      // Reference id: 3 is invalid
+      const item: Todo = {
+        text: 'test',
         references: [1, 2, 3],
         createdAt: new Date(),
         updatedAt: new Date(),
         completedAt: null
-      };
+      }
 
-      service.create(itemWithDuplicateReferences);
-      expect(mockSet).toHaveBeenCalledWith(
-        'item#1',
-        JSON.stringify(expectedItem)
-      );
+      expect(await service.create(item)).toEqual(null);
+      expect(setMock).not.toHaveBeenCalled();
+    });
+
+    it('should create todo with unique reference numbers', async () => {
+     let mockTodoIndex = 0;
+
+      const getMock = jest.spyOn(TodoStorage.prototype, 'get');
+      getMock.mockImplementationOnce(jest.fn(() => {
+        return Promise.resolve(1);
+      }));
+
+      const setMock = jest.spyOn(TodoStorage.prototype, 'set');
+      setMock.mockImplementationOnce(jest.fn(() => {
+        return Promise.resolve();
+      }));
+
+      const getTodoIndexMock = jest.spyOn(TodoStorage.prototype, 'getTodoIndex');
+      getTodoIndexMock.mockImplementationOnce(jest.fn(() => {
+        mockTodoIndex += 1;
+        return Promise.resolve(mockTodoIndex);
+      }));
+
+      const item: Todo = {
+        text: 'test',
+        references: [1, 1, 1, 2, 2, 2],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        completedAt: null
+      }
+
+      await service.create(item);
+
+      item.id = mockTodoIndex;
+      item.references = item.references.filter((v, i, a) => a.indexOf(v) === i);
+      expect(setMock).toHaveBeenCalledWith('todo:' + mockTodoIndex, item);
     });
   });
 });

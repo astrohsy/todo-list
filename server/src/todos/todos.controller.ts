@@ -21,7 +21,12 @@ export class TodosController {
   @Post()
   @HttpCode(204)
   async create(@Body() createTodoBody: CreateTodoValidator) {
-    this.todosService.create(createTodoBody);
+    let todo: Todo = {
+      ...createTodoBody,
+      createdAt: new Date()
+    };
+
+    this.todosService.create(todo);
   }
 
   @Get()
