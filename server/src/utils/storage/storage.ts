@@ -1,6 +1,5 @@
 import * as Redis from "ioredis";
 
-type Key = number;
 type Value = object|string|number;
 const group = 'todo';
 
@@ -33,6 +32,20 @@ export class TodoStorage {
     async get(group: string, key: number): Promise<Value> {
         const res = await this.redisClient.zrangebyscore(group, key, key);
         return JSON.parse(res[0]);
+    }
+
+    async getRange(group: string, offset: number, limit: number): Promise<Value[]> {
+        const data = await this.redisClient.zrangebyscore(group, 0, Infinity, 'LIMIT', String(offset), String(limit));
+
+        const res = Promise.all(
+            data.map((item) => JSON.parse(item))
+        );
+        
+        return res;
+    }
+
+    async getGroupSize(group: string) {
+        return this.redisClient.zcount(group, 0, Infinity);
     }
 
     async getTodoIndex(): Promise<Value> {
