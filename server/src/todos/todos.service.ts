@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { Todo } from './interfaces/todo.interface';
 import { TodoStorage } from '../utils/storage/storage';
+import { redisKey } from './contants/todos.contants';
 
 @Injectable()
 export class TodosService {
@@ -23,7 +24,7 @@ export class TodosService {
     /* Case 2: Reference is not exist */
     const references = await Promise.all(
       newTodo.references.map(async (value) => {
-        return this.storage.get('todo:' + value);
+        return this.storage.get(redisKey, value);
       })
     )
 
@@ -32,7 +33,7 @@ export class TodosService {
       const id = await this.storage.getTodoIndex();
       newTodo.id = Number(id);
 
-      await this.storage.set('todo:' + id, newTodo);
+      await this.storage.set(redisKey, newTodo.id, newTodo);
       return newTodo;
     } else {
       return null;

@@ -5,6 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TodosService } from './todos.service';
 import { Todo } from './interfaces/todo.interface';
 import { TodoStorage } from '../utils/storage/storage';
+import { redisKey } from './contants/todos.contants';
 
 describe('TodosService', () => {
   let service: TodosService;
@@ -48,15 +49,15 @@ describe('TodosService', () => {
       await service.create(item);
 
       item.id = mockTodoIndex;
-      expect(setMock).toHaveBeenCalledWith('todo:' + mockTodoIndex, item);
+      expect(setMock).toHaveBeenCalledWith(redisKey, mockTodoIndex, item);
     });
 
     it('should not create todo with invalid reference', async () => {
       let mockTodoIndex = 0;
 
       const getMock = jest.spyOn(TodoStorage.prototype, 'get');
-      getMock.mockImplementation(jest.fn((key) => {
-        if (key === 'todo:3') Promise.reject('invalid key');
+      getMock.mockImplementation(jest.fn((redisGroup, key) => {
+        if (key === 3) Promise.reject('invalid key');
         else return Promise.resolve(key);
       }));
 
@@ -116,7 +117,7 @@ describe('TodosService', () => {
 
       item.id = mockTodoIndex;
       item.references = item.references.filter((v, i, a) => a.indexOf(v) === i);
-      expect(setMock).toHaveBeenCalledWith('todo:' + mockTodoIndex, item);
+      expect(setMock).toHaveBeenCalledWith(redisKey, mockTodoIndex, item);
     });
   });
 });
