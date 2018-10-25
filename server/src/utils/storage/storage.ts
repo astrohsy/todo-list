@@ -1,59 +1,70 @@
-import * as Redis from "ioredis";
+import * as Redis from 'ioredis';
 
-type Value = object|string|number;
+type Value = object | string | number;
 const group = 'todo';
 
 interface TodoStorageConfigurations {
-    isTest: boolean;
+  isTest: boolean;
 }
 
 export class TodoStorage {
-    private readonly redisClient;
+  private readonly redisClient;
 
-    constructor(config?: TodoStorageConfigurations) {
-        if (config !== undefined && config.isTest === true) {
-            // For mocking
-            this.redisClient = Redis.prototype;
-        } else {
-            // Connect to a real redis server
-            this.redisClient = new Redis({ dropBufferSupport: true });
-        }
+  constructor(config?: TodoStorageConfigurations) {
+    if (config !== undefined && config.isTest === true) {
+      // For mocking
+      this.redisClient = Redis.prototype;
+    } else {
+      // Connect to a real redis server
+      this.redisClient = new Redis({ dropBufferSupport: true });
     }
+  }
 
-    async set(group: string, key: number, value: Value) {
-        const convertedValue = JSON.stringify(value);
+  async set(group: string, key: number, value: Value) {
+    const convertedValue = JSON.stringify(value);
 
-        await this.redisClient.multi()
-            .zremrangebyscore(group, key, key)
-            .zadd(group, key, convertedValue)
-            .exec();
-    }
+    await this.redisClient
+      .multi()
+      .zremrangebyscore(group, key, key)
+      .zadd(group, key, convertedValue)
+      .exec();
+  }
 
-    async get(group: string, key: number): Promise<Value> {
-        const res = await this.redisClient.zrangebyscore(group, key, key);
-        return JSON.parse(res[0]);
-    }
+  async get(group: string, key: number): Promise<Value> {
+    const res = await this.redisClient.zrangebyscore(group, key, key);
+    return JSON.parse(res[0]);
+  }
 
-    async getRange(group: string, offset: number, limit: number): Promise<Value[]> {
-        const data = await this.redisClient.zrangebyscore(group, 0, Infinity, 'LIMIT', String(offset), String(limit));
+  async getRange(
+    group: string,
+    offset: number,
+    limit: number,
+  ): Promise<Value[]> {
+    const data = await this.redisClient.zrangebyscore(
+      group,
+      0,
+      Infinity,
+      'LIMIT',
+      String(offset),
+      String(limit),
+    );
 
-        const res = Promise.all(
-            data.map((item) => JSON.parse(item))
-        );
-        
-        return res;
-    }
+    const res = Promise.all(data.map(item => JSON.parse(item)));
 
-    async getGroupSize(group: string) {
-        return this.redisClient.zcount(group, 0, Infinity);
-    }
+    return res;
+  }
 
-    async getTodoIndex(): Promise<Value> {
-        const res =  await this.redisClient.multi()
-            .incr('todo-index')
-            .get('todo-index')
-            .exec();
+  async getGroupSize(group: string) {
+    return this.redisClient.zcount(group, 0, Infinity);
+  }
 
-        return res[0][1];
-    }
+  async getTodoIndex(): Promise<Value> {
+    const res = await this.redisClient
+      .multi()
+      .incr('todo-index')
+      .get('todo-index')
+      .exec();
+
+    return res[0][1];
+  }
 }

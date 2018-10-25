@@ -11,15 +11,14 @@ describe('Storage Util', () => {
   });
 
   describe('Todo', () => {
-
     it('should set and get same value', async () => {
       const testGroup = 'test-group-1';
       const todo: Todo = {
         id: 1,
         text: 'test',
         references: [1, 2],
-        createdAt: new Date()
-      }
+        createdAt: new Date(),
+      };
 
       await storage.set(testGroup, 1, todo);
       const res = await storage.get(testGroup, 1);
@@ -35,19 +34,19 @@ describe('Storage Util', () => {
         storage.getTodoIndex(),
         storage.getTodoIndex(),
         storage.getTodoIndex(),
-        storage.getTodoIndex()
+        storage.getTodoIndex(),
       ]);
 
-      expect( (new Set(res)).size ).toEqual(res.length);
+      expect(new Set(res).size).toEqual(res.length);
     });
 
     it('should return items with given limit and offset', async () => {
       const getRangeTestGroup = 'get-range-test';
 
       Promise.all(
-        Array.from(new Array(30).keys()).map(async (value) => {
+        Array.from(new Array(30).keys()).map(async value => {
           storage.set(getRangeTestGroup, value, value);
-        })
+        }),
       );
 
       const offset = 5;
@@ -62,14 +61,13 @@ describe('Storage Util', () => {
       const getRangeTestGroup = 'get-range-test';
 
       Promise.all(
-        Array.from(new Array(30).keys()).map(async (value) => {
+        Array.from(new Array(30).keys()).map(async value => {
           storage.set(getRangeTestGroup, value, value);
-        })
+        }),
       );
 
       const size = await storage.getGroupSize(getRangeTestGroup);
       expect(size).toEqual(30);
     });
-
   });
-})
+});
