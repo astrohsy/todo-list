@@ -1,4 +1,8 @@
 import React, { Component } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+
+import { faEdit } from '@fortawesome/free-solid-svg-icons'
+
 import './TodoItem.css';
 
 class TodoItem extends Component {
@@ -10,11 +14,9 @@ class TodoItem extends Component {
         <div className="remove" onClick={(e) => {
           e.stopPropagation();
           onRemove(id)}
-        }>&times;</div>
-        <div className="modify" onClick={(e) => {
-          e.stopPropagation();
-          onRemove(id)}
-        }>+</div>
+        }>
+          <FontAwesomeIcon icon={faEdit} />
+        </div>
         <div className={`todo-text ${checked && 'checked'}`}>
           <div className='todo-item-id'>
             {id}번
