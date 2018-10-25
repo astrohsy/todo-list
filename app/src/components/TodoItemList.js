@@ -18,7 +18,7 @@ render() {
           createdAt={createdAt}
           updatedAt={updatedAt}
           completedAt={completedAt}
-          checked={ !(completedAt === undefined || completedAt === null) }
+          checked={ !(completedAt == null || completedAt === '') }
           onToggle={onToggle}
           onRemove={onRemove}
           key={id}

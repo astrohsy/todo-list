@@ -65,6 +65,7 @@ class App extends Component {
   handlePageSizeChange = (e) => {
     this.setState({
       ...this.setState,
+      pageNumber: 1,
       pageSize: Number(e.target.value)
     }, () => {
         this.reloadTodos(this.state.pageNumber, this.state.pageSize)

@@ -61,8 +61,9 @@
   */
   
   .pagination{
-    --paginationItemActiveBgColor: #4557bb;
-    --paginationItemTextColor: #0094d9;
+      padding: 2px 0 2px 0;
+    --paginationItemActiveBgColor: #fee233;
+    --paginationItemTextColor: #201d1e;
     --paginationItemActiveTextColor: #fff;
     
     justify-content: center;

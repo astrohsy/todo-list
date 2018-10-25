@@ -11,16 +11,22 @@ class TodoItem extends Component {
           e.stopPropagation();
           onRemove(id)}
         }>&times;</div>
+        <div className="modify" onClick={(e) => {
+          e.stopPropagation();
+          onRemove(id)}
+        }>+</div>
         <div className={`todo-text ${checked && 'checked'}`}>
-          <div>
-          {id}
+          <div className='todo-item-id'>
+            {id}번
           </div>
           <div>
           {text}
           </div>
-          <div>{createdAt}</div>
-          <div>{updatedAt}</div>
-          <div>{completedAt}</div>
+        </div>
+        <div className='todo-date-group'>
+          <div className='todo-date'>{createdAt ? `생성일시: ${createdAt}` : ''}</div>
+          <div className='todo-date'>{updatedAt ? `수정일시: ${updatedAt}` : ''}</div>
+          <div className='todo-date'>{completedAt ? `완료일시: ${completedAt}` : ''}</div>
         </div>
         {
           checked && (<div className="check-mark">✓</div>)
