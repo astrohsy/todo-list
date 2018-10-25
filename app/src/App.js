@@ -1,9 +1,11 @@
-import React, { Component } from 'react';
-import TodoListTemplate from './components/TodoListTemplate';
-import Form from './components/Form';
-import TodoItemList from './components/TodoItemList';
 import axios from 'axios';
 import * as moment from 'moment';
+import React, { Component } from 'react';
+
+import Form from './components/Form';
+import Pagination from './components/Pagination';
+import TodoItemList from './components/TodoItemList';
+import TodoListTemplate from './components/TodoListTemplate';
 
 const API_SERVER_URL = 'http://localhost:8000/';
 
@@ -12,11 +14,20 @@ class App extends Component {
 
   state = {
     input: '',
+    pageSize: 5,
+    pageNumber: 1,
+    todoNumber: 10,
     todos: []
   }
 
   componentDidMount() {
-    axios.get(API_SERVER_URL + 'todos?offset=0&limit=5')
+    this.reloadTodos(this.state.pageNumber, this.state.pageSize);
+  }
+
+  reloadTodos = (pageNumber, pageSize) => {
+      const offset = (pageNumber-1) * pageSize;
+      const limit = pageSize;
+      axios.get(API_SERVER_URL + `todos?offset=${offset}&limit=${limit}`)
       .then((response) => {
 
         const todos = response.data.map( (todo) => {
@@ -28,14 +39,13 @@ class App extends Component {
         });
 
         this.setState({
-          input: '',
+          ...this.state,
           todos: todos
         })
-    });
+      });
   }
 
   dateFormatter = (stringDate) => {
-
     if ( !(stringDate !== undefined && stringDate !== null) ) {
       const momentDate = new moment(stringDate);
       const formattedDate = momentDate.format('YYYY-MM-DD h:mm:ss');
@@ -47,14 +57,34 @@ class App extends Component {
 
   handleChange = (e) => {
     this.setState({
+      ...this.setState,
       input: e.target.value
     });
+  }
+
+  handlePageSizeChange = (e) => {
+    this.setState({
+      ...this.setState,
+      pageSize: Number(e.target.value)
+    }, () => {
+        this.reloadTodos(this.state.pageNumber, this.state.pageSize)
+      }
+    );
+  }
+
+  handlePageNumberChange = (pageNum) => {
+    this.setState({
+      ...this.setState,
+      pageNumber: Number(pageNum)
+    }, () => {
+        this.reloadTodos(this.state.pageNumber, this.state.pageSize)
+      }
+    )
   }
 
   handleToggle = (id) => {
     const { todos } = this.state;
 
-    // 파라미터로 받은 id 를 가지고 몇번째 아이템인지 찾습니다.
     const index = todos.findIndex(todo => todo.id === id);
     const selected = todos[index]; // 선택한 객체
 
@@ -115,9 +145,11 @@ class App extends Component {
   }
 
   render() {
-    const { input, todos } = this.state;
+    const { input, todoNumber, pageSize, pageNumber, todos } = this.state;
     const {
       handleChange,
+      handlePageSizeChange,
+      handlePageNumberChange,
       handleCreate,
       handleKeyPress,
       handleToggle,
@@ -125,14 +157,28 @@ class App extends Component {
     } = this;
 
     return (
-      <TodoListTemplate form={(
+      <TodoListTemplate
+      form={(
         <Form 
           value={input}
+          pageSize={pageSize}
           onKeyPress={handleKeyPress}
           onChange={handleChange}
+          onpageSizeChange={handlePageSizeChange}
           onCreate={handleCreate}
         />
-      )}>
+      )}
+      pagination={(
+        <Pagination
+          todoNumber={todoNumber}
+          pageNumber={pageNumber}
+          pageSize={pageSize}
+          onPageNumberChange={handlePageNumberChange}
+        >
+        </Pagination>
+      )}
+      >
+      
         <TodoItemList todos={todos} onToggle={handleToggle} onRemove={handleRemove}/>
       </TodoListTemplate>
     );

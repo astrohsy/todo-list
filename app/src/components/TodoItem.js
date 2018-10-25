@@ -12,7 +12,12 @@ class TodoItem extends Component {
           onRemove(id)}
         }>&times;</div>
         <div className={`todo-text ${checked && 'checked'}`}>
-          <div>{text}</div>
+          <div>
+          {id}
+          </div>
+          <div>
+          {text}
+          </div>
           <div>{createdAt}</div>
           <div>{updatedAt}</div>
           <div>{completedAt}</div>

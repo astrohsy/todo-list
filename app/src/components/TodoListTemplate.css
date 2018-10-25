@@ -22,4 +22,10 @@
   
   .todos-wrapper {
     min-height: 5rem;
+    border-bottom: 1px solid #22b8cf;
+  }
+
+  .pagination-wrapper {
+    padding: 1rem;
+    border-bottom: 1px solid #22b8cf;
   }

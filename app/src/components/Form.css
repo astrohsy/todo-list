@@ -10,6 +10,14 @@
     border-bottom: 1px solid #c5f6fa;
 }
 
+.form select {
+    font-size: 1.25rem;
+    text-align: center;
+    outline: none;
+    border: none;
+    border-bottom: 1px solid #c5f6fa;
+}
+
 .create-button {
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
