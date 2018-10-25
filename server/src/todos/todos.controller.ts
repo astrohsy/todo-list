@@ -9,6 +9,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 
 import { Todo } from './interfaces/todo.interface';
@@ -43,8 +44,14 @@ export class TodosController {
   }
 
   @Get()
-  async findAll(): Promise<Todo[]> {
-    return this.todosService.findAll();
+  async find(
+    @Query('offset') offset,
+    @Query('limit') limit
+  ) : Promise<Todo[]> {
+    offset = offset || 0;
+    limit = limit || 5;
+
+    return this.todosService.find(offset, limit);
   }
 
   @Put(':id')
@@ -52,8 +59,4 @@ export class TodosController {
     this.todosService.update(updateTodoBody);
   }
 
-  @Delete(':id')
-  async remove(@Param('id') id) {
-    this.todosService.delete(id);
-  }
 }

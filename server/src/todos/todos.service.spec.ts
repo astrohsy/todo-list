@@ -146,4 +146,20 @@ describe('TodosService', () => {
       expect(setMock).toHaveBeenCalledWith(redisKey, mockTodoIndex, item);
     });
   });
+
+  describe('find', () => {
+    it('should return todos with valid size', async() => {
+      const getMock = jest.spyOn(TodoStorage.prototype, 'getRange');
+      getMock.mockImplementationOnce(
+        jest.fn((group, offset, limit) => {
+          const res = Array.from(new Array(offset+limit).keys()).slice(offset);
+          return Promise.resolve(res);
+        }),
+      );
+
+      const res = await service.find(11, 20);
+      expect(res[0]).toEqual(11);
+      expect(res[res.length - 1]).toEqual(30);
+    });
+  });
 });

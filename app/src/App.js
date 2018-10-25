@@ -10,15 +10,39 @@ const API_SERVER_URL = 'http://localhost:8000/';
 
 class App extends Component {
 
-  id = 3 // 이미 0,1,2 가 존재하므로 3으로 설정
-
   state = {
     input: '',
-    todos: [
-      { id: 0, text: ' 리액트 소개', checked: false },
-      { id: 1, text: ' 리액트 소개', checked: true },
-      { id: 2, text: ' 리액트 소개', checked: false }
-    ]
+    todos: []
+  }
+
+  componentDidMount() {
+    axios.get(API_SERVER_URL + 'todos?offset=0&limit=5')
+      .then((response) => {
+
+        const todos = response.data.map( (todo) => {
+          todo.createdAt = this.dateFormatter(todo.createdAt);
+          todo.updatedAt = this.dateFormatter(todo.updatedAt);
+          todo.completedAt = this.dateFormatter(todo.completedAt);
+
+          return todo;
+        });
+
+        this.setState({
+          input: '',
+          todos: todos
+        })
+    });
+  }
+
+  dateFormatter = (stringDate) => {
+
+    if ( !(stringDate !== undefined && stringDate !== null) ) {
+      const momentDate = new moment(stringDate);
+      const formattedDate = momentDate.format('YYYY-MM-DD h:mm:ss');
+      return formattedDate;
+    } else {
+      return '';
+    }
   }
 
   handleChange = (e) => {
@@ -57,17 +81,6 @@ class App extends Component {
       text,
       references
     }
-
-    let dateFormatter = (stringDate) => {
-
-      if ( !(stringDate !== undefined && stringDate !== null) ) {
-        const momentDate = new moment(stringDate);
-        const formattedDate = momentDate.format('YYYY-MM-DD h:mm:ss');
-        return formattedDate;
-      } else {
-        return '';
-      }
-    }
     
     axios.post(API_SERVER_URL + 'todos', requestForm)
       .then((response) => {
@@ -77,9 +90,9 @@ class App extends Component {
           todos: todos.concat({
             id: response.data.id,
             text: response.data.text + trailingText,
-            createdAt: dateFormatter(response.data.createdAt),
-            updatedAt: dateFormatter(response.data.updatedAt),
-            completedAt: dateFormatter(response.data.completedAt)
+            createdAt: this.dateFormatter(response.data.createdAt),
+            updatedAt: this.dateFormatter(response.data.updatedAt),
+            completedAt: this.dateFormatter(response.data.completedAt)
           })
       });
     

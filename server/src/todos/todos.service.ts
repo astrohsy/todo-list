@@ -42,8 +42,10 @@ export class TodosService {
     }
   }
 
-  async findAll(): Promise<Todo[]> {
-    return this.todos;
+  async find(offset: number, limit: number): Promise<Todo[]> {
+    const res = await this.storage.getRange(redisKey, offset, limit) as Todo[];
+    
+    return res;
   }
 
   async update(todo: Todo) {
