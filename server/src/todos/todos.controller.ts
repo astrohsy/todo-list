@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  Param,
-  Post,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, Post, Put } from '@nestjs/common';
 
 import { Todo } from './interfaces/todo.interface';
 import { TodosService } from './todos.service';
@@ -19,14 +10,22 @@ export class TodosController {
   constructor(private readonly todosService: TodosService) {}
 
   @Post()
-  @HttpCode(204)
+  @HttpCode(201)
   async create(@Body() createTodoBody: CreateTodoValidator) {
     let todo: Todo = {
       ...createTodoBody,
       createdAt: new Date()
     };
 
-    this.todosService.create(todo);
+    const res = await this.todosService.create(todo);
+    if (res == null) {
+      throw new HttpException({
+        status: HttpStatus.BAD_REQUEST,
+        error: 'Wrong Reference',
+      }, 400);
+    }
+
+    return res;
   }
 
   @Get()
