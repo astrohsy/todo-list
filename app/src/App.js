@@ -29,8 +29,8 @@ class App extends Component {
       const limit = pageSize;
       axios.get(API_SERVER_URL + `todos?offset=${offset}&limit=${limit}`)
       .then((response) => {
-
         const todos = response.data.map( (todo) => {
+          
           todo.createdAt = this.dateFormatter(todo.createdAt);
           todo.updatedAt = this.dateFormatter(todo.updatedAt);
           todo.completedAt = this.dateFormatter(todo.completedAt);
@@ -46,13 +46,13 @@ class App extends Component {
   }
 
   dateFormatter = (stringDate) => {
-    if ( !(stringDate !== undefined && stringDate !== null) ) {
-      const momentDate = new moment(stringDate);
-      const formattedDate = momentDate.format('YYYY-MM-DD h:mm:ss');
-      return formattedDate;
-    } else {
+    if (stringDate == null) {
       return '';
     }
+
+    const momentDate = new moment(stringDate);
+    const formattedDate = momentDate.format('YYYY-MM-DD h:mm:ss');
+    return formattedDate;
   }
 
   handleChange = (e) => {
