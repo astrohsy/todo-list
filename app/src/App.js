@@ -37,7 +37,6 @@ class App extends Component {
       .then((response) => {
         const todoCount = response.data.metadata.count;
         const todos = response.data.data.map( (todo) => {
-          
           todo.createdAt = this.dateFormatter(todo.createdAt);
           todo.updatedAt = this.dateFormatter(todo.updatedAt);
           todo.completedAt = this.dateFormatter(todo.completedAt);
@@ -60,7 +59,7 @@ class App extends Component {
 
   dateFormatter = (stringDate) => {
     if (stringDate == null || stringDate === '') {
-      return '';
+      return null;
     }
 
     const momentDate = new moment(stringDate);
@@ -112,14 +111,14 @@ class App extends Component {
   }
 
   handleCreate = () => {
-    const { input, todos } = this.state;
+    const { input } = this.state;
 
     const [text, ...references] = input.split('@')
       .map((value) => { return value.trim(); });
 
     const requestForm = {
       text,
-      references
+      references: references.map((value) => Number(value))
     }
     
     axios.post(API_SERVER_URL + 'todos', requestForm)
@@ -141,7 +140,7 @@ class App extends Component {
     const requestForm = {
       ...todo,
       text,
-      references
+      references: references.map((value) => Number(value))
     }
     
     axios.put(API_SERVER_URL + `todos/${todo.id}` , requestForm)

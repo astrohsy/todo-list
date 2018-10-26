@@ -11,17 +11,12 @@ class TodoItem extends Component {
     text: ''
   };
 
-  constructor(props) {
-    super(props);
-
-    this.state = {
-        isModify: false,
-        text: props.text
-    }
+  referenceToTrailingText = (refs) => {
+    return (refs.length > 0 ? ' @' : '') + refs.join(' @');
   }
 
   render() {
-    const { text, createdAt, updatedAt, completedAt, checked, id, onComplete } = this.props;
+    const { createdAt, updatedAt, completedAt, checked, id, onComplete } = this.props;
 
     return (
       <div className="todo-item" onClick={() => onComplete(id)}>
@@ -35,16 +30,16 @@ class TodoItem extends Component {
           <div className='todo-item-id'>
             {id}번
           </div>
-          { this.renderText(text) }
+          { this.renderText() }
         </div>
+        {
+          checked && (<div className="check-mark">✓</div>)
+        }
         <div className='todo-date-group'>
           <div className='todo-date'>{createdAt ? `생성일시: ${createdAt}` : ''}</div>
           <div className='todo-date'>{updatedAt ? `수정일시: ${updatedAt}` : ''}</div>
           <div className='todo-date'>{completedAt ? `완료일시: ${completedAt}` : ''}</div>
         </div>
-        {
-          checked && (<div className="check-mark">✓</div>)
-        }
       </div>
     );
   }
@@ -54,24 +49,35 @@ class TodoItem extends Component {
       this.props.onUpdate({
         id :this.props.id,
         text: this.state.text,
+        references: this.props.references,
         createdAt: this.props.createdAt,
         completedAt: this.props.completedAt
       });
     }
+    const refInfo = this.referenceToTrailingText(this.props.references);
+
     this.setState({
       ...this.setState,
+      text: this.props.text + refInfo,
       isModify: !this.state.isModify
     })
   }
 
-  renderText = (text) => {
+  renderText = () => {
+    const refInfo = this.referenceToTrailingText(this.props.references);
     if (this.state.isModify === false) {
       return (
-        <div>{text}</div>
+        <div>{ this.props.text + refInfo }</div>
       );
     } else {
       return (
-        <input value={this.state.text} onChange={this.handleChange}></input>
+        <input value={this.state.text} 
+        onChange={this.handleChange}
+        onClick={(e) => {
+          e.stopPropagation();
+          }
+        }>
+        </input>
       )
     }
   }

@@ -12,6 +12,7 @@
 
 .form select {
     font-size: 1.25rem;
+    margin-right: 1rem;
     text-align: center;
     outline: none;
     border: none;

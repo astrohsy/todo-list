@@ -60,15 +60,37 @@ export class TodosService {
     return res;
   }
 
-  async update(id, todo: Todo) {
-    const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
+  async update(id: number, todo: Todo) {
 
-    /* cycle check */
+    /* Case 1: Reference is not exist */
+    const references = await Promise.all(
+      todo.references.map(async value => {
+        return this.storage.get(redisKey, value);
+      }),
+    );
+
+    if (references.filter(v => v == null).length !== 0) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          response:
+            '해당 Todo에 참조한 Todo 중에 존재하지 않는 Todo가 있습니다.',
+        },
+        400,
+      );
+    }
+
+    /* Case 2: Cycle check */
     const g = new Graph();
     const V = {} as any;
-    const queue = [todo.id];
+    const queue = [];
 
-    V[id] = true;
+    todo.references.forEach(next => {
+      g.addEdge(id, next);
+      queue.push(next);
+      V[next] = true;
+    });
+
     while (queue.length > 0) {
       const now = queue.shift();
       const nowTodo = (await this.storage.get(redisKey, now)) as Todo;
@@ -84,8 +106,14 @@ export class TodosService {
       }
     }
 
+    console.log('1=========');
+
+    g.printGraph()
+
+    console.log('2=========');
+    console.log(g)
+
     if (g.isCycle()) {
-      console.log('==== Cycle ===');
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,

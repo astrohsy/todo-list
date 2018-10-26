@@ -11,10 +11,11 @@ render() {
     const { todos, onComplete, onUpdate } = this.props;
 
     const todoList = todos.map(
-      ({id, text, createdAt, updatedAt, completedAt}, i) => (
+      ({id, text, references, createdAt, updatedAt, completedAt}, i) => (
         <TodoItem
           id={id}
           text={text}
+          references={references}
           createdAt={createdAt}
           updatedAt={updatedAt}
           completedAt={completedAt}

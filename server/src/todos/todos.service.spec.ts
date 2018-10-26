@@ -173,26 +173,103 @@ describe('TodosService', () => {
   });
 
   describe('update', () => {
-    it('should return todos with valid size', async () => {
-      const test1 = {
-        text: 'test',
-        references: [],
-        createdAt: '2018-10-26T09:34:32.393Z',
-        id: 3,
-      };
+    it('should update without cycle', async () => {
+      const testTodos = [
+        null,
+        {
+          text: 'test',
+          references: [],
+          createdAt: new Date(),
+          id: 1,
+        },
 
-      const test2 = {
-        text: 'test2',
-        references: ['3'],
-        createdAt: '2018-10-26T09:34:40.369Z',
-        id: 4,
-      };
+        {
+          text: 'test2',
+          references: [3],
+          createdAt: new Date(),
+          id: 2,
+        },
+
+        {
+          text: 'test3',
+          references: [],
+          createdAt: new Date,
+          id: 3,
+        }
+      ] as Todo[];
+
+      const getMock = jest.spyOn(TodoStorage.prototype, 'get');
+      getMock.mockImplementation(
+        jest.fn((redisGroup, key) => {
+          return Promise.resolve(testTodos[key]);
+        }),
+      );
+
+      let error;
+      try {
+        const newTodo = Object.assign(testTodos[3], { references: [1] });
+        await service.update(3, newTodo)
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).not.toBeDefined();
+    });
+
+    it('should not update on cycle', async () => {
+      const testTodos = [
+        null,
+        {
+          text: 'test',
+          references: [2],
+          createdAt: new Date(),
+          id: 1,
+        },
+
+        {
+          text: 'test2',
+          references: [3],
+          createdAt: new Date(),
+          id: 2,
+        },
+
+        {
+          text: 'test3',
+          references: [],
+          createdAt: new Date,
+          id: 3,
+        }
+      ] as Todo[];
+
+      const getMock = jest.spyOn(TodoStorage.prototype, 'get');
+      getMock.mockImplementation(
+        jest.fn((redisGroup, key) => {
+          return Promise.resolve(testTodos[key]);
+        }),
+      );
+
+      const setMock = jest.spyOn(TodoStorage.prototype, 'set');
+      setMock.mockImplementation(jest.fn());
+
+      // Add a cycle reference
+      const newTodo = Object.assign(testTodos[3], { references: [1] });
+
+      let error;
+      try {
+        await service.update(3, newTodo)
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).toBeDefined();
+      //expect(setMock).toBeCalledWith(redisKey, 3, newTodo);
     });
   });
 
   describe('patch', () => {
-    it('should return todos with valid size', async () => {});
+    it('should return todos with valid size', async () => {
+      
+    });
   });
 
-  //"{\"text\":\"test\",\"references\":[],\"createdAt\":\"2018-10-26T09:34:32.393Z\",\"id\":3}"
 });

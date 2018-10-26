@@ -46,7 +46,7 @@ export class TodoStorage {
     // getRange by reverse order
 
     const size = await this.getGroupSize(group);
-    const realOffset = Math.max(size - offset - limit + 1, 0);
+    const realOffset = Math.max(size - offset - limit + (offset === 0 ? 1 : 0), 0);
 
     const data = await this.redisClient.zrangebyscore(
       group,
