@@ -43,8 +43,12 @@ export class TodosService {
   }
 
   async find(offset: number, limit: number): Promise<Todo[]> {
-    const res = await this.storage.getRange(redisKey, offset, limit) as Todo[];
-    
+    const res = (await this.storage.getRange(
+      redisKey,
+      offset,
+      limit,
+    )) as Todo[];
+
     return res;
   }
 
@@ -57,12 +61,14 @@ export class TodosService {
   async patch(id, todo: Partial<Todo>) {
     // TODO: Implement a cycle check
 
-    const oldTodo = await this.storage.get(redisKey, id) as Todo;
-    const newTodo = Object.assign(oldTodo, todo);
+    const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
 
-    if (oldTodo.completedAt !== null && todo.completedAt !== null) {
+    // Can not update complete time, once it has been completed
+    if (!(oldTodo.completedAt == null && todo.completedAt !== null)) {
       return null;
     }
+
+    const newTodo = Object.assign(oldTodo, todo);
 
     return await this.storage.set(redisKey, id, newTodo);
   }

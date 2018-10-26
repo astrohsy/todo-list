@@ -45,10 +45,7 @@ export class TodosController {
   }
 
   @Get()
-  async find(
-    @Query('offset') offset,
-    @Query('limit') limit
-  ) : Promise<Todo[]> {
+  async find(@Query('offset') offset, @Query('limit') limit): Promise<Todo[]> {
     offset = offset || 0;
     limit = limit || 5;
 
@@ -67,5 +64,4 @@ export class TodosController {
   async complete(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
     return this.todosService.patch(id, updateTodoBody);
   }
-
 }

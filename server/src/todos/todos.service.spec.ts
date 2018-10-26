@@ -148,11 +148,13 @@ describe('TodosService', () => {
   });
 
   describe('find', () => {
-    it('should return todos with valid size', async() => {
+    it('should return todos with valid size', async () => {
       const getMock = jest.spyOn(TodoStorage.prototype, 'getRange');
       getMock.mockImplementationOnce(
         jest.fn((group, offset, limit) => {
-          const res = Array.from(new Array(offset+limit).keys()).slice(offset);
+          const res = Array.from(new Array(offset + limit).keys()).slice(
+            offset,
+          );
           return Promise.resolve(res);
         }),
       );
