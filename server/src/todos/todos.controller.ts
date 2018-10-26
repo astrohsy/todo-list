@@ -1,22 +1,14 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpException,
-  HttpStatus,
-  Param,
-  Post,
-  Put,
-  Query,
-  Patch,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, Patch, Post, Put, Query } from '@nestjs/common';
 
 import { Todo } from './interfaces/todo.interface';
 import { TodosService } from './todos.service';
 import { CreateTodoValidator } from './validators/create-todo.validator';
 import { UpdateTodoValidator } from './validators/update-todo.validator';
+
+interface ResponseWrapper<T> {
+  metadata?: any,
+  data: T
+}
 
 @Controller('todos')
 export class TodosController {
@@ -24,7 +16,7 @@ export class TodosController {
 
   @Post()
   @HttpCode(201)
-  async create(@Body() createTodoBody: CreateTodoValidator) {
+  async create(@Body() createTodoBody: CreateTodoValidator): Promise< ResponseWrapper<Todo> > {
     let todo: Todo = {
       ...createTodoBody,
       createdAt: new Date(),
@@ -41,27 +33,34 @@ export class TodosController {
       );
     }
 
-    return res;
+    return {
+      data: res
+    }
   }
 
   @Get()
-  async find(@Query('offset') offset, @Query('limit') limit): Promise<Todo[]> {
+  async find(@Query('offset') offset, @Query('limit') limit): Promise< ResponseWrapper<Todo[]> > {
     offset = offset || 0;
     limit = limit || 5;
 
-    return this.todosService.find(offset, limit);
+    return {
+      metadata: {
+        count: await this.todosService.count()
+      },
+      data: await this.todosService.find(offset, limit)
+    }
   }
 
   @Put(':id')
   @HttpCode(200)
   async update(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
     updateTodoBody.id = id;
-    return this.todosService.update(updateTodoBody);
+    this.todosService.update(updateTodoBody)
   }
 
   @Patch(':id')
   @HttpCode(200)
   async complete(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
-    return this.todosService.patch(id, updateTodoBody);
+    this.todosService.patch(id, updateTodoBody);
   }
 }

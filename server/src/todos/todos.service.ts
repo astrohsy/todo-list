@@ -72,4 +72,8 @@ export class TodosService {
 
     return await this.storage.set(redisKey, id, newTodo);
   }
+
+  async count() {
+    return await this.storage.getGroupSize(redisKey);
+  }
 }

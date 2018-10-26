@@ -5,8 +5,8 @@ import './Pagination.css';
 const sizeOfPages = 5;
 const sideSize = Math.floor(sizeOfPages / 2);
 
-const Pagination = ({todoNumber, pageNumber, pageSize, onPageNumberChange}) => {
-  const numberOfPages = Math.max(1, Math.floor(todoNumber / pageSize));
+const Pagination = ({todoCount, pageNumber, pageSize, onPageNumberChange}) => {
+  const numberOfPages = Math.max(1, Math.ceil(todoCount / pageSize));
 
   const pages = [];
   for (let i = Math.max(pageNumber - sideSize, 1); i <= Math.min(numberOfPages, pageNumber+sideSize); i++) {

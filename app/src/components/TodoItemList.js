@@ -11,7 +11,7 @@ render() {
     const { todos, onComplete, onUpdate } = this.props;
 
     const todoList = todos.map(
-      ({id, text, createdAt, updatedAt, completedAt}) => (
+      ({id, text, createdAt, updatedAt, completedAt}, i) => (
         <TodoItem
           id={id}
           text={text}
@@ -21,7 +21,7 @@ render() {
           checked={ !(completedAt == null || completedAt === '') }
           onComplete={onComplete}
           onUpdate={onUpdate}
-          key={id}
+          key={i}
         />
       )
     );

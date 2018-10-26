@@ -16,7 +16,7 @@ class App extends Component {
     input: '',
     pageSize: 5,
     pageNumber: 1,
-    todoNumber: 10,
+    todoCount: 10,
     todos: []
   }
 
@@ -29,7 +29,8 @@ class App extends Component {
       const limit = this.state.pageSize;
       axios.get(API_SERVER_URL + `todos?offset=${offset}&limit=${limit}`)
       .then((response) => {
-        const todos = response.data.map( (todo) => {
+        const todoCount = response.data.metadata.count;
+        const todos = response.data.data.map( (todo) => {
           
           todo.createdAt = this.dateFormatter(todo.createdAt);
           todo.updatedAt = this.dateFormatter(todo.updatedAt);
@@ -40,7 +41,8 @@ class App extends Component {
 
         this.setState({
           ...this.state,
-          todos: todos
+          todoCount,
+          todos
         })
       });
   }
@@ -107,15 +109,16 @@ class App extends Component {
     
     axios.post(API_SERVER_URL + 'todos', requestForm)
       .then((response) => {
-        const trailingText = (response.data.references.length === 0) ? '' :' @'.concat(response.data.references.join(' @'));
+        const data = response.data.data;
+        const trailingText = (data.references.length === 0) ? '' :' @'.concat(data.references.join(' @'));
         this.setState({
           input: '',
           todos: todos.concat({
-            id: response.data.id,
-            text: response.data.text + trailingText,
-            createdAt: this.dateFormatter(response.data.createdAt),
-            updatedAt: this.dateFormatter(response.data.updatedAt),
-            completedAt: this.dateFormatter(response.data.completedAt)
+            id: data.id,
+            text: data.text + trailingText,
+            createdAt: this.dateFormatter(data.createdAt),
+            updatedAt: this.dateFormatter(data.updatedAt),
+            completedAt: this.dateFormatter(data.completedAt)
           })
       });
     });
@@ -148,7 +151,7 @@ class App extends Component {
   }
 
   render() {
-    const { input, todoNumber, pageSize, pageNumber, todos } = this.state;
+    const { input, todoCount, pageSize, pageNumber, todos } = this.state;
     const {
       handleChange,
       handlePageSizeChange,
@@ -173,7 +176,7 @@ class App extends Component {
       )}
       pagination={(
         <Pagination
-          todoNumber={todoNumber}
+          todoCount={todoCount}
           pageNumber={pageNumber}
           pageSize={pageSize}
           onPageNumberChange={handlePageNumberChange}
