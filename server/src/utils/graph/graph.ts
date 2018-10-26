@@ -1,7 +1,6 @@
 export class Graph {
   private nodes: object;
   private vertexSize: number;
-  private maxVertex: number;
 
   constructor() {
     const defaultGetter = {
@@ -11,7 +10,7 @@ export class Graph {
     };
 
     this.nodes = new Proxy({}, defaultGetter);
-    this.vertexSize = 1;
+    this.vertexSize = 0;
   }
 
   addEdge(from: number, to: number) {

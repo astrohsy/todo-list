@@ -6,8 +6,8 @@ import { CreateTodoValidator } from './validators/create-todo.validator';
 import { UpdateTodoValidator } from './validators/update-todo.validator';
 
 interface ResponseWrapper<T> {
-  metadata?: any,
-  data: T
+  metadata?: any;
+  data: T;
 }
 
 @Controller('todos')
@@ -16,51 +16,56 @@ export class TodosController {
 
   @Post()
   @HttpCode(201)
-  async create(@Body() createTodoBody: CreateTodoValidator): Promise< ResponseWrapper<Todo> > {
+  async create(
+    @Body() createTodoBody: CreateTodoValidator,
+  ): Promise<ResponseWrapper<Todo>> {
     let todo: Todo = {
       ...createTodoBody,
       createdAt: new Date(),
     };
 
-    const res = await this.todosService.create(todo);
-    if (res == null) {
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: 'Wrong Reference',
-        },
-        400,
-      );
+    let res;
+    try {
+      res = await this.todosService.create(todo);
+    } catch (e) {
+      throw e;
     }
 
     return {
-      data: res
-    }
+      data: res,
+    };
   }
 
   @Get()
-  async find(@Query('offset') offset, @Query('limit') limit): Promise< ResponseWrapper<Todo[]> > {
+  async find(
+    @Query('offset') offset,
+    @Query('limit') limit,
+  ): Promise<ResponseWrapper<Todo[]>> {
     offset = offset || 0;
     limit = limit || 5;
 
     return {
       metadata: {
-        count: await this.todosService.count()
+        count: await this.todosService.count(),
       },
-      data: await this.todosService.find(offset, limit)
-    }
+      data: await this.todosService.find(offset, limit),
+    };
   }
 
   @Put(':id')
   @HttpCode(200)
   async update(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
     updateTodoBody.id = id;
-    this.todosService.update(updateTodoBody)
+    this.todosService.update(id, updateTodoBody);
   }
 
   @Patch(':id')
   @HttpCode(200)
   async complete(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
-    this.todosService.patch(id, updateTodoBody);
+    try {
+      await this.todosService.patch(id, updateTodoBody);
+    } catch (e) {
+      throw e;
+    }
   }
 }

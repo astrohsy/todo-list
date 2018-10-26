@@ -164,4 +164,29 @@ describe('TodosService', () => {
       expect(res[res.length - 1]).toEqual(30);
     });
   });
+
+  describe('update', () => {
+    it('should return todos with valid size', async () => {
+      const test1 = {
+        text: 'test',
+        references: [],
+        createdAt: '2018-10-26T09:34:32.393Z',
+        id: 3
+      };
+
+      const test2 = {
+        text: 'test2',
+        references: [ '3' ],
+        createdAt: '2018-10-26T09:34:40.369Z',
+        id: 4
+      };
+    });
+  });
+
+  describe('patch', () => {
+    it('should return todos with valid size', async () => {
+    });
+  });
+
+  //"{\"text\":\"test\",\"references\":[],\"createdAt\":\"2018-10-26T09:34:32.393Z\",\"id\":3}"
 });

@@ -24,7 +24,13 @@ class App extends Component {
     this.reloadTodos(this.state.pageNumber, this.state.pageSize);
   }
 
-  reloadTodos = (pageNumber, pageSize) => {
+  reloadTodos = (pageNumber, pageSize, _tryCnt) => {
+      const tryCnt = _tryCnt || 0;
+
+      if (tryCnt > 5) {
+        return;
+      }
+
       const offset = (this.state.pageNumber-1) * this.state.pageSize;
       const limit = this.state.pageSize;
       axios.get(API_SERVER_URL + `todos?offset=${offset}&limit=${limit}`)
@@ -44,7 +50,12 @@ class App extends Component {
           todoCount,
           todos
         })
-      });
+      })
+      .catch((error) => {
+        setTimeout(() => {
+          this.reloadTodos(pageNumber, pageSize, tryCnt+1);
+        }, 100)
+      })
   }
 
   dateFormatter = (stringDate) => {
@@ -93,6 +104,10 @@ class App extends Component {
     axios.patch(API_SERVER_URL + `todos/${id}` , requestForm)
       .then((response) => {
         this.reloadTodos();
+    }).catch((error) => {
+      if (error.response) {
+        alert(`${error.response.status}: ${error.response.data.response}`);
+      }
     });
   }
 
@@ -120,8 +135,13 @@ class App extends Component {
             updatedAt: this.dateFormatter(data.updatedAt),
             completedAt: this.dateFormatter(data.completedAt)
           })
+        });
+      })
+      .catch((error) => {
+        if (error.response) {
+          alert(`${error.response.status}: ${error.response.data.response}`);
+        }
       });
-    });
   }
 
   handleUpdate = (todo) => {
@@ -139,7 +159,11 @@ class App extends Component {
       .then((response) => {
         //const trailingText = (response.data.references.length === 0) ? '' :' @'.concat(response.data.references.join(' @'));
         this.reloadTodos();
-    });
+    }).catch((error) => {
+      if (error.response) {
+        alert(`${error.response.status}: ${error.response.data.response}`);
+      }
+    })
   }
 
 

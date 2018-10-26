@@ -32,6 +32,9 @@ export class TodoStorage {
 
   async get(group: string, key: number): Promise<Value> {
     const res = await this.redisClient.zrangebyscore(group, key, key);
+    if (res.length === 0) {
+      return null;
+    }
     return JSON.parse(res[0]);
   }
 
