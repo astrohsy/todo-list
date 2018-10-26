@@ -99,7 +99,14 @@ describe('TodosService', () => {
         completedAt: null,
       };
 
-      expect(await service.create(item)).toEqual(null);
+      let error;
+      try {
+        await service.create(item);
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).toBeDefined();
       expect(setMock).not.toHaveBeenCalled();
     });
 

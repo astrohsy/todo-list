@@ -49,11 +49,30 @@ describe('Storage Util', () => {
         }),
       );
 
+      const offset = 21;
+      const limit = 10;
+      const values = await storage.getRange(getRangeTestGroup, offset, limit);
+      const expectedValues = [8, 7, 6, 5, 4, 3, 2, 1, 0];
+      for (let i = 0; i < limit; i++) {
+        expect(values[i]).toEqual(expectedValues[i]);
+      }
+    });
+
+    it('should return items with given larger beyond its size', async () => {
+      const getRangeTestGroup = 'get-range-test2';
+
+      Promise.all(
+        Array.from(new Array(10).keys()).map(async value => {
+          storage.set(getRangeTestGroup, value, value);
+        }),
+      );
+
       const offset = 5;
       const limit = 10;
-      const values = await storage.getRange(getRangeTestGroup, 5, 10);
+      const values = await storage.getRange(getRangeTestGroup, offset, limit);
+      const expectedValues = [4, 3, 2, 1, 0];
       for (let i = 0; i < limit; i++) {
-        expect(values[i]).toEqual(offset + i);
+        expect(values[i]).toEqual(expectedValues[i]);
       }
     });
 
