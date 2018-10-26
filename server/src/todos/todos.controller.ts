@@ -55,8 +55,10 @@ export class TodosController {
   }
 
   @Put(':id')
+  @HttpCode(200)
   async update(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
-    this.todosService.update(updateTodoBody);
+    updateTodoBody.id = id;
+    return this.todosService.update(updateTodoBody);
   }
 
 }

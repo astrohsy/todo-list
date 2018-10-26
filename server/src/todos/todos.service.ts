@@ -49,7 +49,8 @@ export class TodosService {
   }
 
   async update(todo: Todo) {
-    // TODO: implement update
+    todo.updatedAt = new Date();
+    return await this.storage.set(redisKey, todo.id, todo);
   }
 
   async delete(id: number) {

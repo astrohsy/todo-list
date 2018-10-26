@@ -25,8 +25,8 @@ class App extends Component {
   }
 
   reloadTodos = (pageNumber, pageSize) => {
-      const offset = (pageNumber-1) * pageSize;
-      const limit = pageSize;
+      const offset = (this.state.pageNumber-1) * this.state.pageSize;
+      const limit = this.state.pageSize;
       axios.get(API_SERVER_URL + `todos?offset=${offset}&limit=${limit}`)
       .then((response) => {
         const todos = response.data.map( (todo) => {
@@ -46,12 +46,12 @@ class App extends Component {
   }
 
   dateFormatter = (stringDate) => {
-    if (stringDate == null) {
+    if (stringDate == null || stringDate === '') {
       return '';
     }
 
     const momentDate = new moment(stringDate);
-    const formattedDate = momentDate.format('YYYY-MM-DD h:mm:ss');
+    const formattedDate = momentDate.format('YYYY-MM-DD hh:mm:ss');
     return formattedDate;
   }
 
@@ -126,14 +126,24 @@ class App extends Component {
             completedAt: this.dateFormatter(response.data.completedAt)
           })
       });
-    
     });
   }
 
-  handleRemove = (id) => {
-    const { todos } = this.state;
-    this.setState({
-      todos: todos.filter(todo => todo.id !== id)
+  handleUpdate = (todo) => {
+
+    const [text, ...references] = todo.text.split('@')
+      .map((value) => { return value.trim(); });
+
+    const requestForm = {
+      ...todo,
+      text,
+      references
+    }
+    
+    axios.put(API_SERVER_URL + `todos/${todo.id}` , requestForm)
+      .then((response) => {
+        //const trailingText = (response.data.references.length === 0) ? '' :' @'.concat(response.data.references.join(' @'));
+        this.reloadTodos();
     });
   }
 
@@ -154,7 +164,7 @@ class App extends Component {
       handleCreate,
       handleKeyPress,
       handleToggle,
-      handleRemove
+      handleUpdate
     } = this;
 
     return (
@@ -180,7 +190,7 @@ class App extends Component {
       )}
       >
       
-        <TodoItemList todos={todos} onToggle={handleToggle} onRemove={handleRemove}/>
+        <TodoItemList todos={todos} onToggle={handleToggle} onUpdate={handleUpdate}/>
       </TodoListTemplate>
     );
   }
