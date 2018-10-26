@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  Patch,
 } from '@nestjs/common';
 
 import { Todo } from './interfaces/todo.interface';
@@ -59,6 +60,12 @@ export class TodosController {
   async update(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
     updateTodoBody.id = id;
     return this.todosService.update(updateTodoBody);
+  }
+
+  @Patch(':id')
+  @HttpCode(200)
+  async complete(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
+    return this.todosService.patch(id, updateTodoBody);
   }
 
 }

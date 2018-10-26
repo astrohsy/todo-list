@@ -8,7 +8,7 @@ class TodoItemList extends Component {
   }
 
 render() {
-    const { todos, onToggle, onUpdate } = this.props;
+    const { todos, onComplete, onUpdate } = this.props;
 
     const todoList = todos.map(
       ({id, text, createdAt, updatedAt, completedAt}) => (
@@ -19,7 +19,7 @@ render() {
           updatedAt={updatedAt}
           completedAt={completedAt}
           checked={ !(completedAt == null || completedAt === '') }
-          onToggle={onToggle}
+          onComplete={onComplete}
           onUpdate={onUpdate}
           key={id}
         />

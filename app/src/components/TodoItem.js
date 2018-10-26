@@ -21,10 +21,10 @@ class TodoItem extends Component {
   }
 
   render() {
-    const { text, createdAt, updatedAt, completedAt, checked, id, onToggle } = this.props;
+    const { text, createdAt, updatedAt, completedAt, checked, id, onComplete } = this.props;
 
     return (
-      <div className="todo-item" onClick={() => onToggle(id)}>
+      <div className="todo-item" onClick={() => onComplete(id)}>
         <div className="remove" onClick={(e) => {
           e.stopPropagation();
           this.onModifyClick() }

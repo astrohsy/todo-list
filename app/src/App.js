@@ -83,22 +83,14 @@ class App extends Component {
     )
   }
 
-  handleToggle = (id) => {
-    const { todos } = this.state;
-
-    const index = todos.findIndex(todo => todo.id === id);
-    const selected = todos[index]; // 선택한 객체
-
-    const nextTodos = [...todos]; // 배열을 복사
-
-    // 기존의 값들을 복사하고, checked 값을 덮어쓰기
-    nextTodos[index] = { 
-      ...selected, 
-      checked: !selected.checked
-    };
-
-    this.setState({
-      todos: nextTodos
+  handleComplete = (id) => {
+    const requestForm = {
+      completedAt: new Date(),
+    }
+    
+    axios.patch(API_SERVER_URL + `todos/${id}` , requestForm)
+      .then((response) => {
+        this.reloadTodos();
     });
   }
 
@@ -163,7 +155,7 @@ class App extends Component {
       handlePageNumberChange,
       handleCreate,
       handleKeyPress,
-      handleToggle,
+      handleComplete,
       handleUpdate
     } = this;
 
@@ -190,7 +182,7 @@ class App extends Component {
       )}
       >
       
-        <TodoItemList todos={todos} onToggle={handleToggle} onUpdate={handleUpdate}/>
+        <TodoItemList todos={todos} onComplete={handleComplete} onUpdate={handleUpdate}/>
       </TodoListTemplate>
     );
   }

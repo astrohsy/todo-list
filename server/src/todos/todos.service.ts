@@ -49,11 +49,21 @@ export class TodosService {
   }
 
   async update(todo: Todo) {
+    // TODO: Implement valid reference check
     todo.updatedAt = new Date();
     return await this.storage.set(redisKey, todo.id, todo);
   }
 
-  async delete(id: number) {
-    // TODO: implement delete
+  async patch(id, todo: Partial<Todo>) {
+    // TODO: Implement a cycle check
+
+    const oldTodo = await this.storage.get(redisKey, id) as Todo;
+    const newTodo = Object.assign(oldTodo, todo);
+
+    if (oldTodo.completedAt !== null && todo.completedAt !== null) {
+      return null;
+    }
+
+    return await this.storage.set(redisKey, id, newTodo);
   }
 }
