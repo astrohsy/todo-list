@@ -2,7 +2,7 @@ import 'jest';
 
 import { Graph } from './graph';
 
-describe.skip('Graph Util', () => {
+describe('Graph Util', () => {
   describe('isCycle', () => {
     it('should return false without Cycle', async () => {
       const g = new Graph();
