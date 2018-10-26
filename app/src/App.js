@@ -124,18 +124,7 @@ class App extends Component {
     
     axios.post(API_SERVER_URL + 'todos', requestForm)
       .then((response) => {
-        const data = response.data.data;
-        const trailingText = (data.references.length === 0) ? '' :' @'.concat(data.references.join(' @'));
-        this.setState({
-          input: '',
-          todos: todos.concat({
-            id: data.id,
-            text: data.text + trailingText,
-            createdAt: this.dateFormatter(data.createdAt),
-            updatedAt: this.dateFormatter(data.updatedAt),
-            completedAt: this.dateFormatter(data.completedAt)
-          })
-        });
+        this.reloadTodos(this.state.pageNumber, this.state.pageSize)
       })
       .catch((error) => {
         if (error.response) {

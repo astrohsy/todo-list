@@ -43,16 +43,19 @@ export class TodoStorage {
     offset: number,
     limit: number,
   ): Promise<Value[]> {
+    // getRange by reverse order
+
+    const size = await this.getGroupSize(group);
     const data = await this.redisClient.zrangebyscore(
       group,
       0,
       Infinity,
       'LIMIT',
-      String(offset),
-      String(limit),
+      String(Math.max(size - offset - limit + 1, 0)),
+      String(size - offset + 1),
     );
 
-    const res = Promise.all(data.map(item => JSON.parse(item)));
+    const res = data.map(item => JSON.parse(item)).reverse();
 
     return res;
   }

@@ -171,21 +171,20 @@ describe('TodosService', () => {
         text: 'test',
         references: [],
         createdAt: '2018-10-26T09:34:32.393Z',
-        id: 3
+        id: 3,
       };
 
       const test2 = {
         text: 'test2',
-        references: [ '3' ],
+        references: ['3'],
         createdAt: '2018-10-26T09:34:40.369Z',
-        id: 4
+        id: 4,
       };
     });
   });
 
   describe('patch', () => {
-    it('should return todos with valid size', async () => {
-    });
+    it('should return todos with valid size', async () => {});
   });
 
   //"{\"text\":\"test\",\"references\":[],\"createdAt\":\"2018-10-26T09:34:32.393Z\",\"id\":3}"

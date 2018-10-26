@@ -58,7 +58,7 @@ describe('Graph Util', () => {
       // Cycle
       g.addEdge(10, 1);
 
-      console.log(JSON.stringify(g))
+      console.log(JSON.stringify(g));
 
       expect(g.isCycle()).toEqual(true);
     });

@@ -42,7 +42,8 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: '해당 Todo에 참조한 Todo 중에 존재하지 않는 Todo가 있습니다.',
+          response:
+            '해당 Todo에 참조한 Todo 중에 존재하지 않는 Todo가 있습니다.',
         },
         400,
       );
@@ -73,7 +74,7 @@ export class TodosService {
       const nowTodo = (await this.storage.get(redisKey, now)) as Todo;
 
       if (nowTodo.completedAt == null) {
-        nowTodo.references.forEach((next) => {
+        nowTodo.references.forEach(next => {
           if (V[next] !== true) {
             g.addEdge(now, next);
             queue.push(next);
@@ -88,13 +89,13 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: '해당 Todo에 참조가 걸린 Todo에 의해 완료 불가능한 구조입니다.',
+          response:
+            '해당 Todo에 참조가 걸린 Todo에 의해 완료 불가능한 구조입니다.',
         },
         400,
       );
     }
 
-    
     todo.updatedAt = new Date();
     return await this.storage.set(redisKey, todo.id, todo);
   }
@@ -113,7 +114,7 @@ export class TodosService {
       const nowTodo = (await this.storage.get(redisKey, now)) as Todo;
 
       if (now === id || nowTodo.completedAt) {
-        nowTodo.references.forEach((next) => {
+        nowTodo.references.forEach(next => {
           if (V[next] !== true) {
             queue.push(next);
             V[next] = true;
