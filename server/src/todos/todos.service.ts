@@ -23,7 +23,7 @@ export class TodosService {
       }),
     );
 
-    if (references.filter(v => v == null).length !== 0) {
+    if (references.some((v) => v == null)) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
