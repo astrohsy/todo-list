@@ -43,7 +43,7 @@ export class TodosService {
         {
           status: HttpStatus.BAD_REQUEST,
           response:
-            '해당 Todo에 참조한 Todo 중에 존재하지 않는 Todo가 있습니다.',
+            '참조하는 Todo 중 존재하지 않는 Todo id가 있습니다.',
         },
         400,
       );
@@ -74,7 +74,7 @@ export class TodosService {
         {
           status: HttpStatus.BAD_REQUEST,
           response:
-            '해당 Todo에 참조한 Todo 중에 존재하지 않는 Todo가 있습니다.',
+            '참조하는 Todo 중 존재하지 않는 Todo id가 있습니다.',
         },
         400,
       );
@@ -106,19 +106,12 @@ export class TodosService {
       }
     }
 
-    console.log('1=========');
-
-    g.printGraph()
-
-    console.log('2=========');
-    console.log(g)
-
     if (g.isCycle()) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
           response:
-            '해당 Todo에 참조가 걸린 Todo에 의해 완료 불가능한 구조입니다.',
+            '참조가 걸린 Todo에 사이클 발생으로 완료 불가능한 구조입니다.',
         },
         400,
       );
@@ -141,14 +134,17 @@ export class TodosService {
       const now = queue.shift();
       const nowTodo = (await this.storage.get(redisKey, now)) as Todo;
 
-      if (now === id || nowTodo.completedAt) {
+      if (now === id) {
         nowTodo.references.forEach(next => {
           if (V[next] !== true) {
             queue.push(next);
             V[next] = true;
           }
         });
-      } else {
+      } else if (nowTodo.completedAt) {
+        continue;
+      } 
+      else {
         hasNotChecked = true;
         break;
       }
@@ -158,13 +154,13 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: '해당 Todo에 참조가 걸린 Todo가 완료가 안되있습니다',
+          response: '참조가 걸린 Todo 중 완료가 안된 Todo가 있습니다.',
         },
         400,
       );
     }
 
-    // Can not update complete time, once it has been completed
+    // Can not update complete time, once it had been completed
     if (!(oldTodo.completedAt == null && todo.completedAt !== null)) {
       return null;
     }
