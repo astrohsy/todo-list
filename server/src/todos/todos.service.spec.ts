@@ -35,11 +35,11 @@ describe('TodosService', () => {
         }),
       );
 
-      const getTodoIndexMock = jest.spyOn(
+      const getIndexMock = jest.spyOn(
         TodoStorage.prototype,
-        'getTodoIndex',
+        'getIndex',
       );
-      getTodoIndexMock.mockImplementationOnce(
+      getIndexMock.mockImplementationOnce(
         jest.fn(() => {
           mockTodoIndex += 1;
           return Promise.resolve(mockTodoIndex);
@@ -85,11 +85,11 @@ describe('TodosService', () => {
       );
       setMock.mockClear();
 
-      const getTodoIndexMock = jest.spyOn(
+      const getIndexMock = jest.spyOn(
         TodoStorage.prototype,
-        'getTodoIndex',
+        'getIndex',
       );
-      getTodoIndexMock.mockImplementation(
+      getIndexMock.mockImplementation(
         jest.fn(() => {
           mockTodoIndex += 1;
           return Promise.resolve(mockTodoIndex);
@@ -133,11 +133,11 @@ describe('TodosService', () => {
         }),
       );
 
-      const getTodoIndexMock = jest.spyOn(
+      const getIndexMock = jest.spyOn(
         TodoStorage.prototype,
-        'getTodoIndex',
+        'getIndex',
       );
-      getTodoIndexMock.mockImplementationOnce(
+      getIndexMock.mockImplementationOnce(
         jest.fn(() => {
           mockTodoIndex += 1;
           return Promise.resolve(mockTodoIndex);

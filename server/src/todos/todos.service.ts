@@ -2,7 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 
 import { Todo } from './interfaces/todo.interface';
 import { TodoStorage } from '../utils/storage/storage';
-import { redisKey } from './contants/todos.contants';
+import { redisKey, redisIndexKey } from './contants/todos.contants';
 import { Graph } from '../utils/graph/graph';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class TodosService {
 
     if (references.filter(v => v == null).length === 0) {
       /* Issue new Id */
-      const id = await this.storage.getTodoIndex();
+      const id = await this.storage.getIndex(redisIndexKey);
       newTodo.id = Number(id);
 
       await this.storage.set(redisKey, newTodo.id, newTodo);

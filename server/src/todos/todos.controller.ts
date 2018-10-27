@@ -50,11 +50,11 @@ export class TodosController {
 
   @Get()
   async find(
-    @Query('offset') offset,
-    @Query('limit') limit,
+    @Query('offset') offset: number,
+    @Query('limit') limit: number,
   ): Promise<ResponseWrapper<Todo[]>> {
-    offset = offset || 0;
-    limit = limit || 5;
+    offset = Number(offset || 0);
+    limit = Number(limit || 5);
 
     return {
       metadata: {
