@@ -1,44 +1,74 @@
-import * as Collections from 'typescript-collections';
+import * as Redis from 'ioredis';
 
-type AdjList = {
-  [key:string]: Collections.Set<number>;
+const outEdgeKey = (from: number) => {
+  if (process.env.NODE_ENV === 'test') {
+    return `graph-test-virtual-edge-out:${from}`
+  }
+  return `virtual-edge-out:${from}`;
+}
+
+const inEdgeKey = (from: number) => {
+  if (process.env.NODE_ENV === 'test') {
+    return `graph-test-virtual-edge-in:${from}`
+  }
+  return  `virtual-edge-in:${from}`;
+}
+
+const completeKey = (vertex: number) => {
+  if (process.env.NODE_ENV === 'test') {
+    return `graph-test-virtual-verterx:${vertex}`
+  }
+  return `virtual-verterx:${vertex}`;
 }
 
 export class Graph {
-  private nodes: AdjList;
-  private vertexSize: number;
+  private redisClient: Redis.Redis;
 
   constructor() {
-    this.nodes = {};
-    this.vertexSize = 0;
+    this.redisClient = new Redis({ dropBufferSupport: true });
   }
 
-  addEdge(from: number, to: number) {
-    if (this.nodes[from] == null) {
-      const newSet = new Collections.Set<number>();
-      this.nodes[from] = newSet;
-    }
-
-    if (!this.nodes[from].contains(to)) {
-      this.nodes[from].add(to);
-      this.vertexSize += 1;
-    }
+  async setEdge(from: number, to: number) {
+    this.redisClient.sadd(outEdgeKey(from), String(to));
+    this.redisClient.sadd(inEdgeKey(to), String(from));
   }
 
-  removeEdge(from: number, to: number) {
-    if (this.nodes[from].contains(to)) {
-      this.nodes[from].remove(to);
-      this.vertexSize -= 1;
-    }
+  async setComplete(vertex: number) {
+    return this.redisClient.set(completeKey(vertex), true);
   }
 
+  async unsetComplete(vertex: number) {
+    return this.redisClient.del(completeKey(vertex));
+  }
+
+  async unsetEdge(from: number, to: number) {
+    this.redisClient.srem(outEdgeKey(from), String(to));
+    this.redisClient.srem(inEdgeKey(to), String(from));
+  }
+
+  async isComplete(vertex: number): Promise<boolean> {
+    const res = await this.redisClient.get(completeKey(vertex));
+    return res == 'null' || res == null ? false : true;
+  }
+
+  async getInNodes(from: number): Promise<number[]> {
+    return this.redisClient.smembers(inEdgeKey(from));
+  }
+
+  async getOutNodes(from: number): Promise<number[]> {
+    return this.redisClient.smembers(outEdgeKey(from));
+  }
+
+  /*
   printGraph() {
+    const outNodes = await this.getOutNodes(
     Object.keys(this.nodes).forEach(([key, value]) => {
-      console.log(`\nNode ${key} => ${this.nodes[key].toArray().join(' ')}\n`);
+      console.log(`\n Node ${key} Out: => ${this.nodes[key].toArray().join(' ')}\n`);
     });
   }
+  */
 
-  isCycle(): boolean {
+  async willBeCycle(newFrom: number, newTo: number[]): Promise<boolean> {
     const defaultGetter = {
       get: function(target, name) {
         return target.hasOwnProperty(name) ? target[name] : false;
@@ -47,38 +77,43 @@ export class Graph {
 
     let isVisited = new Proxy({}, defaultGetter);
     let isInStack = new Proxy({}, defaultGetter);
+    isVisited[newFrom] = true;
+    isInStack[newFrom] = true;
 
-    const nodes = Object.keys(this.nodes).map(value => Number(value));
-    for (let i = 0; i < nodes.length; i++) {
-      if (this.isCycleUtil(nodes[i], isVisited, isInStack)) {
+    for (let i = 0; i < newTo.length; i++) {
+      const node = newTo[i];
+
+      if (await this.isCycleUtil(node, isVisited, isInStack)) {
         return true;
       }
     }
-
     return false;
   }
 
-  private isCycleUtil(
+  private async isCycleUtil(
     v: number,
     isVisited: object,
-    isInStack: object,
-  ): boolean {
-    if (isVisited[v] === false && this.nodes[v]) {
+    isInStack: object
+  ): Promise<boolean> {
+    
+    const isComplete = await this.isComplete(v);
+    if (!isVisited[v] && !isComplete) {
       isVisited[v] = true;
       isInStack[v] = true;
+      const nodes = await this.getOutNodes(v)
 
-      const nodes = this.nodes[v].toArray();
       for (let i = 0; i < nodes.length; i++) {
         let node = nodes[i];
-        if (!isVisited[node] && this.isCycleUtil(node, isVisited, isInStack)) {
+        if (!isVisited[node] && (await this.isCycleUtil(node, isVisited, isInStack))) {
           return true;
-        } else if (isInStack[node]) {
+        } else if (isInStack[node]){
           return true;
+        }else {
+          return false;
         }
       }
     }
 
-    isInStack[v] = false;
     return false;
   }
 }

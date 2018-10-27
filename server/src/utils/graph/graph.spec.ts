@@ -1,97 +1,132 @@
 import 'jest';
 
 import { Graph } from './graph';
+import * as Redis from 'ioredis';
+
+const testKey = 'graph-test-*'
 
 describe('Graph Util', () => {
-  describe('addEdge', () => {
+  let redisClient: Redis.Redis;
+
+  beforeAll(async () => {
+    redisClient = new Redis();
+  })
+
+  beforeEach(async () => {
+    const usedList = await redisClient.keys('graph-test-*');
+    usedList.forEach(async (index) => {
+      await redisClient.del(index);
+    })
+  })
+
+  afterAll(async () => {
+    const usedList = await redisClient.keys('graph-test-*');
+    usedList.forEach(async (index) => {
+      await redisClient.del(index);
+    })
+  })
+
+  describe('setEdge', () => {
     it('should not add duplicate Edge', async () => {
       const g = new Graph();
-      g.addEdge(1, 2);
-      g.addEdge(1, 3);
+      await g.setEdge(1, 2);
+      await g.setEdge(1, 3);
 
-      const beforeAdd = JSON.stringify(g);
+      const beforeAdd = JSON.stringify(g.getOutNodes(1));
 
-      g.addEdge(1, 2);
-      g.addEdge(1, 2);
+      await g.setEdge(1, 2);
+      await g.setEdge(1, 2);
 
-      const afterAdd = JSON.stringify(g);
+      const afterAdd = JSON.stringify(g.getOutNodes(1));
 
       expect(beforeAdd).toEqual(afterAdd);
     });
   });
 
-  describe('removeEdge', () => {
+  describe('unsetEdge', () => {
     it('should not remove if there is no such edges', async () => {
       const g = new Graph();
-      g.addEdge(1, 2);
-      g.addEdge(1, 3);
+      await g.setEdge(1, 2);
+      await g.setEdge(1, 3);
 
-      const beforeRemove = JSON.stringify(g);
+      const beforeRemove = JSON.stringify(g.getOutNodes(1));
 
-      g.removeEdge(1, 4);
+      await g.unsetEdge(1, 4);
 
-      const afterRemove = JSON.stringify(g);
+      const afterRemove = JSON.stringify(g.getOutNodes(1));
 
       expect(beforeRemove).toEqual(afterRemove);
     });
   })
 
-  describe('isCycle', () => {
+  describe('willBeCycle', () => {
     it('should return false without Cycle', async () => {
       const g = new Graph();
 
-      g.addEdge(1, 2);
-      g.addEdge(1, 3);
-      g.addEdge(1, 4);
-      g.addEdge(1, 5);
+      await Promise.all([
+        g.setEdge(1, 2),
+        g.setEdge(1, 3),
+        g.setEdge(1, 4),
+        g.setEdge(1, 5),
+  
+        g.setEdge(5, 3),
+        g.setEdge(5, 4),
+        g.setEdge(5, 6),
+        g.setEdge(5, 7),
+      ]);
+      
 
-      g.addEdge(5, 3);
-      g.addEdge(5, 4);
-      g.addEdge(5, 6);
-      g.addEdge(5, 7);
-      g.addEdge(5, 8);
-
-      expect(g.isCycle()).toEqual(false);
+      expect(await g.willBeCycle(7, [8])).toEqual(false);
     });
 
     it('should return true with Cycle', async () => {
       const g = new Graph();
 
-      g.addEdge(1, 2);
-      g.addEdge(1, 3);
-      g.addEdge(1, 4);
-      g.addEdge(1, 5);
+      await Promise.all([
+        g.setEdge(1, 2),
+        g.setEdge(1, 3),
+        g.setEdge(1, 4),
+        g.setEdge(1, 5),
+        g.setEdge(5, 6),
+        g.setEdge(5, 7),
+        g.setEdge(5, 8),
+        g.setEdge(5, 9),
+        g.setEdge(5, 10),
+      ]);
 
-      g.addEdge(5, 6);
-      g.addEdge(5, 7);
-      g.addEdge(5, 8);
-      g.addEdge(5, 9);
-      g.addEdge(5, 10);
-
-      // Cycle
-      g.addEdge(5, 1);
-
-      expect(g.isCycle()).toEqual(true);
+      expect(await g.willBeCycle(5, [1])).toEqual(true);
     });
 
     it('should return true with transitive Cycle', async () => {
       const g = new Graph();
 
-      g.addEdge(1, 2);
-      g.addEdge(1, 3);
-      g.addEdge(1, 4);
-      g.addEdge(1, 5);
+      await Promise.all([
+        g.setEdge(1, 2),
+        g.setEdge(1, 3),
+        g.setEdge(1, 4),
+        g.setEdge(1, 5),
+  
+        g.setEdge(5, 6),
+        g.setEdge(5, 7),
+        g.setEdge(5, 8),
+        g.setEdge(5, 9),
+        g.setEdge(5, 10),
+      ]);
 
-      g.addEdge(5, 6);
-      g.addEdge(5, 7);
-      g.addEdge(5, 8);
-      g.addEdge(5, 9);
-      g.addEdge(5, 10);
+      expect(await g.willBeCycle(10, [1])).toEqual(true);
+    });
 
-      // Cycle
-      g.addEdge(10, 1);
+    it('should return false when checked Node is on Cycle', async () => {
+      const g = new Graph();
 
-      expect(g.isCycle()).toEqual(true);
+      await Promise.all([
+        g.setEdge(1, 5),
+        g.setEdge(5, 10),
+      ]);
+
+      await g.setComplete(5);
+
+      expect(await g.willBeCycle(10, [1])).toEqual(false);
     });
   });
 });

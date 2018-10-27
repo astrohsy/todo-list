@@ -24,11 +24,13 @@
     "@nestjs/core": "^5.1.0",
     "bluebird": "^3.5.2",
     "class-validator": "^0.9.1",
+    "fastify": "^1.12.1",
+    "fastify-formbody": "^2.0.1",
+    "fastify-static": "^0.14.0",
     "ioredis": "^4.2.0",
     "reflect-metadata": "^0.1.12",
     "rxjs": "^6.2.2",
-    "typescript": "^3.0.1",
-    "typescript-collections": "^1.3.2"
+    "typescript": "^3.0.1"
   },
   "devDependencies": {
     "@nestjs/testing": "^5.1.0",

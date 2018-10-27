@@ -6,6 +6,7 @@ import { TodosService } from './todos.service';
 import { Todo } from './interfaces/todo.interface';
 import { TodoStorage } from '../utils/storage/storage';
 import { redisKey } from './contants/todos.contants';
+import { Graph } from '../utils/graph/graph';
 
 describe('TodosService', () => {
   let service: TodosService;
@@ -218,6 +219,13 @@ describe('TodosService', () => {
         }),
       );
 
+      const willBeCycleMock = jest.spyOn(Graph.prototype, 'willBeCycle');
+      willBeCycleMock.mockImplementation(
+        jest.fn((redisGroup, key) => {
+          return Promise.resolve(false);
+        }),
+      );
+
       let error;
       try {
         const newTodo = Object.assign(testTodos[3], { references: [1] });
@@ -258,6 +266,13 @@ describe('TodosService', () => {
       getMock.mockImplementation(
         jest.fn((redisGroup, key) => {
           return Promise.resolve(testTodos[key]);
+        }),
+      );
+
+      const willBeCycleMock = jest.spyOn(Graph.prototype, 'willBeCycle');
+      willBeCycleMock.mockImplementation(
+        jest.fn((redisGroup, key) => {
+          return Promise.resolve(true);
         }),
       );
 

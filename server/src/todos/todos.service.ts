@@ -7,11 +7,12 @@ import { Graph } from '../utils/graph/graph';
 
 @Injectable()
 export class TodosService {
-  private readonly todos: Todo[] = [];
   private readonly storage: TodoStorage;
+  private readonly graph: Graph;
 
   constructor() {
     this.storage = new TodoStorage();
+    this.graph = new Graph();
   }
 
   async create(todo: Todo): Promise<Todo> {
@@ -36,7 +37,9 @@ export class TodosService {
       const id = await this.storage.getIndex(redisIndexKey);
       newTodo.id = Number(id);
 
+      await this.updateGraph(newTodo.id, newTodo.references);
       await this.storage.set(redisKey, newTodo.id, newTodo);
+
       return newTodo;
     } else {
       throw new HttpException(
@@ -81,32 +84,7 @@ export class TodosService {
     }
 
     /* Case 2: Cycle check */
-    const g = new Graph();
-    const V = {} as any;
-    const queue = [];
-
-    todo.references.forEach(next => {
-      g.addEdge(id, next);
-      queue.push(next);
-      V[next] = true;
-    });
-
-    while (queue.length > 0) {
-      const now = queue.shift();
-      const nowTodo = (await this.storage.get(redisKey, now)) as Todo;
-
-      if (nowTodo.completedAt == null) {
-        nowTodo.references.forEach(next => {
-          if (V[next] !== true) {
-            g.addEdge(now, next);
-            queue.push(next);
-            V[next] = true;
-          }
-        });
-      }
-    }
-
-    if (g.isCycle()) {
+    if (await this.graph.willBeCycle(id, todo.references)) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
@@ -118,6 +96,7 @@ export class TodosService {
     }
 
     todo.updatedAt = new Date();
+    await this.updateGraph(id, todo.references);
     return await this.storage.set(redisKey, todo.id, todo);
   }
 
@@ -167,10 +146,19 @@ export class TodosService {
 
     const newTodo = Object.assign(oldTodo, todo);
 
+    await this.graph.setComplete(id);
     return await this.storage.set(redisKey, id, newTodo);
   }
 
   async count() {
     return await this.storage.getGroupSize(redisKey);
+  }
+
+  private async updateGraph(vertex: number, references: number[]): Promise<void> {
+    await Promise.all(
+      references.map(async value => {
+        return this.graph.setEdge(vertex, value);
+      })
+    );
   }
 }
