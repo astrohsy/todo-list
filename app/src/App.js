@@ -46,6 +46,7 @@ class App extends Component {
 
         this.setState({
           ...this.state,
+          input: '',
           todoCount,
           todos
         })
