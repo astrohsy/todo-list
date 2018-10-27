@@ -1,42 +1,40 @@
+import * as Collections from 'typescript-collections';
+
+type AdjList = {
+  [key:string]: Collections.Set<number>;
+}
+
 export class Graph {
-  private nodes: object;
+  private nodes: AdjList;
   private vertexSize: number;
 
   constructor() {
-    const defaultGetter = {
-      get: function(target, name) {
-        return target.hasOwnProperty(name) ? target[name] : [];
-      },
-    };
-
-    this.nodes = new Proxy({}, defaultGetter);
+    this.nodes = {};
     this.vertexSize = 0;
   }
 
   addEdge(from: number, to: number) {
-    if (this.nodes[from].length === 0) {
-      this.nodes[from] = [to];
-    } else {
-      this.nodes[from].push(to);
+    if (this.nodes[from] == null) {
+      const newSet = new Collections.Set<number>();
+      this.nodes[from] = newSet;
     }
 
-    this.vertexSize += 1;
+    if (!this.nodes[from].contains(to)) {
+      this.nodes[from].add(to);
+      this.vertexSize += 1;
+    }
   }
 
   removeEdge(from: number, to: number) {
-    if (this.nodes[from].length === 1) {
-      delete this.nodes[from];
-    } else {
-      this.nodes[from] = this.nodes[from].filter(value => {
-        return value === to;
-      });
+    if (this.nodes[from].contains(to)) {
+      this.nodes[from].remove(to);
+      this.vertexSize -= 1;
     }
-    this.vertexSize -= 1;
   }
 
   printGraph() {
     Object.keys(this.nodes).forEach(([key, value]) => {
-      console.log(`\nNode ${key} => ${this.nodes[key].join(' ')}\n`);
+      console.log(`\nNode ${key} => ${this.nodes[key].toArray().join(' ')}\n`);
     });
   }
 
@@ -65,11 +63,11 @@ export class Graph {
     isVisited: object,
     isInStack: object,
   ): boolean {
-    if (isVisited[v] === false) {
+    if (isVisited[v] === false && this.nodes[v]) {
       isVisited[v] = true;
       isInStack[v] = true;
 
-      const nodes = this.nodes[v];
+      const nodes = this.nodes[v].toArray();
       for (let i = 0; i < nodes.length; i++) {
         let node = nodes[i];
         if (!isVisited[node] && this.isCycleUtil(node, isVisited, isInStack)) {

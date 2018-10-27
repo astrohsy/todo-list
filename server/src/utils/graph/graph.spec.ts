@@ -3,6 +3,39 @@ import 'jest';
 import { Graph } from './graph';
 
 describe('Graph Util', () => {
+  describe('addEdge', () => {
+    it('should not add duplicate Edge', async () => {
+      const g = new Graph();
+      g.addEdge(1, 2);
+      g.addEdge(1, 3);
+
+      const beforeAdd = JSON.stringify(g);
+
+      g.addEdge(1, 2);
+      g.addEdge(1, 2);
+
+      const afterAdd = JSON.stringify(g);
+
+      expect(beforeAdd).toEqual(afterAdd);
+    });
+  });
+
+  describe('removeEdge', () => {
+    it('should not remove if there is no such edges', async () => {
+      const g = new Graph();
+      g.addEdge(1, 2);
+      g.addEdge(1, 3);
+
+      const beforeRemove = JSON.stringify(g);
+
+      g.removeEdge(1, 4);
+
+      const afterRemove = JSON.stringify(g);
+
+      expect(beforeRemove).toEqual(afterRemove);
+    });
+  })
+
   describe('isCycle', () => {
     it('should return false without Cycle', async () => {
       const g = new Graph();
