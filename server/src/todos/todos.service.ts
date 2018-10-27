@@ -37,7 +37,7 @@ export class TodosService {
       const id = await this.storage.getIndex(redisIndexKey);
       newTodo.id = Number(id);
 
-      await this.updateGraph(newTodo.id, newTodo.references);
+      await this.updateGraph(newTodo.id, [], newTodo.references);
       await this.storage.set(redisKey, newTodo.id, newTodo);
 
       return newTodo;
@@ -45,8 +45,7 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response:
-            '참조하는 Todo 중 존재하지 않는 Todo id가 있습니다.',
+          response: '참조하는 Todo 중 존재하지 않는 Todo id가 있습니다.',
         },
         400,
       );
@@ -64,7 +63,6 @@ export class TodosService {
   }
 
   async update(id: number, todo: Todo) {
-
     /* Case 1: Reference is not exist */
     const references = await Promise.all(
       todo.references.map(async value => {
@@ -76,8 +74,7 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response:
-            '참조하는 Todo 중 존재하지 않는 Todo id가 있습니다.',
+          response: '참조하는 Todo 중 존재하지 않는 Todo id가 있습니다.',
         },
         400,
       );
@@ -96,7 +93,9 @@ export class TodosService {
     }
 
     todo.updatedAt = new Date();
-    await this.updateGraph(id, todo.references);
+
+    const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
+    await this.updateGraph(id, oldTodo.references, todo.references);
     return await this.storage.set(redisKey, todo.id, todo);
   }
 
@@ -104,32 +103,8 @@ export class TodosService {
     const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
 
     /* Check if all the references are completed */
-    const V = {} as any;
-    const queue = [id];
-
-    V[id] = true;
-    let hasNotChecked = false;
-    while (queue.length > 0) {
-      const now = queue.shift();
-      const nowTodo = (await this.storage.get(redisKey, now)) as Todo;
-
-      if (now === id) {
-        nowTodo.references.forEach(next => {
-          if (V[next] !== true) {
-            queue.push(next);
-            V[next] = true;
-          }
-        });
-      } else if (nowTodo.completedAt) {
-        continue;
-      } 
-      else {
-        hasNotChecked = true;
-        break;
-      }
-    }
-
-    if (hasNotChecked) {
+    const isCheckable = await this.graph.shouldBeCompleted(id);
+    if (!isCheckable) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
@@ -154,11 +129,21 @@ export class TodosService {
     return await this.storage.getGroupSize(redisKey);
   }
 
-  private async updateGraph(vertex: number, references: number[]): Promise<void> {
+  private async updateGraph(
+    vertex: number,
+    oldRefs: number[],
+    newRefs: number[],
+  ): Promise<void> {
     await Promise.all(
-      references.map(async value => {
+      oldRefs.map(async value => {
+        return this.graph.unsetEdge(vertex, value);
+      }),
+    );
+
+    await Promise.all(
+      newRefs.map(async value => {
         return this.graph.setEdge(vertex, value);
-      })
+      }),
     );
   }
 }

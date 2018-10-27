@@ -2,24 +2,24 @@ import * as Redis from 'ioredis';
 
 const outEdgeKey = (from: number) => {
   if (process.env.NODE_ENV === 'test') {
-    return `graph-test-virtual-edge-out:${from}`
+    return `graph-test-virtual-edge-out:${from}`;
   }
   return `virtual-edge-out:${from}`;
-}
+};
 
 const inEdgeKey = (from: number) => {
   if (process.env.NODE_ENV === 'test') {
-    return `graph-test-virtual-edge-in:${from}`
+    return `graph-test-virtual-edge-in:${from}`;
   }
-  return  `virtual-edge-in:${from}`;
-}
+  return `virtual-edge-in:${from}`;
+};
 
 const completeKey = (vertex: number) => {
   if (process.env.NODE_ENV === 'test') {
-    return `graph-test-virtual-verterx:${vertex}`
+    return `graph-test-virtual-verterx:${vertex}`;
   }
   return `virtual-verterx:${vertex}`;
-}
+};
 
 export class Graph {
   private redisClient: Redis.Redis;
@@ -59,14 +59,19 @@ export class Graph {
     return this.redisClient.smembers(outEdgeKey(from));
   }
 
-  /*
-  printGraph() {
-    const outNodes = await this.getOutNodes(
-    Object.keys(this.nodes).forEach(([key, value]) => {
-      console.log(`\n Node ${key} Out: => ${this.nodes[key].toArray().join(' ')}\n`);
-    });
+  async shouldBeCompleted(from: number): Promise<boolean> {
+    const nodes = await this.getInNodes(from);
+
+    let isValid = true;
+    for (let i = 0; i < nodes.length; i++) {
+      const isCompleted = await this.isComplete(nodes[i]);
+      if (!isCompleted) {
+        isValid = false;
+      }
+    }
+
+    return isValid;
   }
-  */
 
   async willBeCycle(newFrom: number, newTo: number[]): Promise<boolean> {
     const defaultGetter = {
@@ -93,22 +98,24 @@ export class Graph {
   private async isCycleUtil(
     v: number,
     isVisited: object,
-    isInStack: object
+    isInStack: object,
   ): Promise<boolean> {
-    
     const isComplete = await this.isComplete(v);
     if (!isVisited[v] && !isComplete) {
       isVisited[v] = true;
       isInStack[v] = true;
-      const nodes = await this.getOutNodes(v)
+      const nodes = await this.getOutNodes(v);
 
       for (let i = 0; i < nodes.length; i++) {
         let node = nodes[i];
-        if (!isVisited[node] && (await this.isCycleUtil(node, isVisited, isInStack))) {
+        if (
+          !isVisited[node] &&
+          (await this.isCycleUtil(node, isVisited, isInStack))
+        ) {
           return true;
-        } else if (isInStack[node]){
+        } else if (isInStack[node]) {
           return true;
-        }else {
+        } else {
           return false;
         }
       }

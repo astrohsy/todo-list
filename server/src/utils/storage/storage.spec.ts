@@ -37,7 +37,7 @@ describe('Storage Util', () => {
 
   describe('getIndex', () => {
     it('should resist race condition on getIndex', async () => {
-      const testIndexName = 'test-index'
+      const testIndexName = 'test-index';
       const res = await Promise.all([
         storage.getIndex(testIndexName),
         storage.getIndex(testIndexName),
@@ -116,5 +116,4 @@ describe('Storage Util', () => {
       expect(size).toEqual(30);
     });
   });
-  
 });
