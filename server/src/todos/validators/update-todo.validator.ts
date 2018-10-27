@@ -8,7 +8,7 @@ export class UpdateTodoValidator {
   readonly references: number[];
 
   @IsInt()
-  id: number;
+  readonly id: number;
 
   @IsDate()
   readonly createdAt: Date;
