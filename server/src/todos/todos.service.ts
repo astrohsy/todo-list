@@ -83,11 +83,28 @@ export class TodosService {
     todo.updatedAt = new Date();
 
     const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
-    await this.updateTodo(id, todo, oldTodo);
+    return await this.updateTodo(id, todo, oldTodo);
   }
 
-  async patch(id, todo: Partial<Todo>) {
+  async patch(id: number, todo: Partial<Todo>) {
     const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
+
+    /* Handle uncheck request */
+    if (Object.keys(todo).length === 1 && todo.completedAt == null) {
+      const isUncheckable = await this.graph.shouldBeUncompleted(id);
+
+      if (!isUncheckable) {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            response: '참조가 걸린 Todo 중 완료 상태인 Todo가 있습니다.',
+          },
+          400,
+        );
+      }
+      const newTodo = Object.assign(oldTodo, todo);
+      return await this.uncompleteTodo(oldTodo.id, newTodo);
+    }
 
     /* Check if all the references are completed */
     const isCheckable = await this.graph.shouldBeCompleted(id);
@@ -108,7 +125,7 @@ export class TodosService {
 
     const newTodo = Object.assign(oldTodo, todo);
 
-    await this.completeTodo(newTodo.id, newTodo);
+    return await this.completeTodo(newTodo.id, newTodo);
   }
 
   async count(): Promise<number> {
@@ -143,6 +160,15 @@ export class TodosService {
   ): Promise<void> {
 
     await this.graph.setComplete(todoId);
+    await this.storage.set(redisKey, todoId, newTodo);
+  }
+
+  private async uncompleteTodo(
+    todoId: number,
+    newTodo: Todo,
+  ): Promise<void> {
+
+    await this.graph.unsetComplete(todoId);
     await this.storage.set(redisKey, todoId, newTodo);
   }
 }

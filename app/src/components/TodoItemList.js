@@ -19,7 +19,6 @@ render() {
           createdAt={createdAt}
           updatedAt={updatedAt}
           completedAt={completedAt}
-          checked={ !(completedAt == null || completedAt === '') }
           onComplete={onComplete}
           onUpdate={onUpdate}
           key={i}

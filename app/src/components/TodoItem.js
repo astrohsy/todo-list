@@ -16,24 +16,25 @@ class TodoItem extends Component {
   }
 
   render() {
-    const { createdAt, updatedAt, completedAt, checked, id, onComplete } = this.props;
+    const { createdAt, updatedAt, completedAt, id, onComplete } = this.props;
 
     return (
-      <div className="todo-item" onClick={() => onComplete(id)}>
-        <div className="remove" onClick={(e) => {
+      <div className="todo-item" onClick={() => onComplete(id, (completedAt != null))}>
+        <div className={`modify ${completedAt ? 'hidden' : ''}`} onClick={(e) => {
           e.stopPropagation();
-          this.onModifyClick() }
-        }>
-          <FontAwesomeIcon icon={faEdit} />
+          this.onModifyClick() 
+        }}
+        >
+          <FontAwesomeIcon icon={faEdit}/>
         </div>
-        <div className={`todo-text ${checked && 'checked'}`}>
+        <div className={`todo-text ${completedAt && 'checked'}`}>
           <div className='todo-item-id'>
             {id}번
           </div>
           { this.renderText() }
         </div>
         {
-          checked && (<div className="check-mark">✓</div>)
+          completedAt && (<div className="check-mark">✓</div>)
         }
         <div className='todo-date-group'>
           <div className='todo-date'>{createdAt ? `생성일시: ${createdAt}` : ''}</div>

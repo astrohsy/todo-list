@@ -54,7 +54,7 @@ class App extends Component {
       .catch((error) => {
         setTimeout(() => {
           this.reloadTodos(pageNumber, pageSize, tryCnt+1);
-        }, 100)
+        }, 100 * (tryCnt + 1))
       })
   }
 
@@ -96,9 +96,9 @@ class App extends Component {
     )
   }
 
-  handleComplete = (id) => {
+  handleComplete = (id, isCompleted) => {
     const requestForm = {
-      completedAt: new Date(),
+      completedAt: isCompleted ? null : new Date(),
     }
     
     axios.patch(API_SERVER_URL + `todos/${id}` , requestForm)
@@ -106,7 +106,7 @@ class App extends Component {
         this.reloadTodos();
     }).catch((error) => {
       if (error.response) {
-        alert(`${error.response.status}: ${error.response.data.response}`);
+        alert(`${error.response.status} Error 발생: ${error.response.data.response}`);
       }
     });
   }
@@ -128,7 +128,7 @@ class App extends Component {
       })
       .catch((error) => {
         if (error.response) {
-          alert(`${error.response.status}: ${error.response.data.response}`);
+          alert(`${error.response.status} Error 발생: ${error.response.data.response}`);
         }
       });
   }
@@ -150,7 +150,7 @@ class App extends Component {
         this.reloadTodos();
     }).catch((error) => {
       if (error.response) {
-        alert(`${error.response.status}: ${error.response.data.response}`);
+        alert(`${error.response.status} Error 발생: ${error.response.data.response}`);
       }
     })
   }

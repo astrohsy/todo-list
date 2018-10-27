@@ -73,6 +73,20 @@ export class Graph {
     return isValid;
   }
 
+  async shouldBeUncompleted(from: number): Promise<boolean> {
+    const nodes = await this.getOutNodes(from);
+
+    let isValid = true;
+    for (let i = 0; i < nodes.length; i++) {
+      const isCompleted = await this.isComplete(nodes[i]);
+      if (isCompleted) {
+        isValid = false;
+      }
+    }
+
+    return isValid;
+  }
+
   async willBeCycle(newFrom: number, newTo: number[]): Promise<boolean> {
     const defaultGetter = {
       get: function(target, name) {
