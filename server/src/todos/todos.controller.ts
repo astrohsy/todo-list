@@ -36,15 +36,10 @@ export class TodosController {
       createdAt: new Date(),
     };
 
-    let res;
-    try {
-      res = await this.todosService.create(todo);
-    } catch (e) {
-      throw e;
-    }
+    const data = await this.todosService.create(todo);
 
     return {
-      data: res,
+      data,
     };
   }
 
@@ -56,31 +51,26 @@ export class TodosController {
     offset = Number(offset || 0);
     limit = Number(limit || 5);
 
+    const count = await this.todosService.count();
+    const data = await this.todosService.find(offset, limit);
+
     return {
       metadata: {
-        count: await this.todosService.count(),
+        count,
       },
-      data: await this.todosService.find(offset, limit),
+      data,
     };
   }
 
   @Put(':id')
   @HttpCode(200)
   async update(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
-    try {
-      await this.todosService.update(id, updateTodoBody);
-    } catch (e) {
-      throw e;
-    }
+    await this.todosService.update(id, updateTodoBody);
   }
 
   @Patch(':id')
   @HttpCode(200)
   async complete(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator) {
-    try {
-      await this.todosService.patch(id, updateTodoBody);
-    } catch (e) {
-      throw e;
-    }
+    await this.todosService.patch(id, updateTodoBody);
   }
 }

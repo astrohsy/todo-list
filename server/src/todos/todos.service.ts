@@ -16,32 +16,14 @@ export class TodosService {
   }
 
   async create(todo: Todo): Promise<Todo> {
-    const newTodo: Todo = {
-      ...todo,
-    };
-
-    /* Case 1: has duplicate references */
-    newTodo.references = newTodo.references.filter(
-      (v, i, a) => a.indexOf(v) === i,
-    );
-
-    /* Case 2: Reference is not exist */
+    /* Case 1: Reference is not exist */
     const references = await Promise.all(
-      newTodo.references.map(async value => {
+      todo.references.map(async value => {
         return this.storage.get(redisKey, value);
       }),
     );
 
-    if (references.filter(v => v == null).length === 0) {
-      /* Issue new Id */
-      const id = await this.storage.getIndex(redisIndexKey);
-      newTodo.id = Number(id);
-
-      await this.updateGraph(newTodo.id, [], newTodo.references);
-      await this.storage.set(redisKey, newTodo.id, newTodo);
-
-      return newTodo;
-    } else {
+    if (references.filter(v => v == null).length !== 0) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
@@ -50,6 +32,12 @@ export class TodosService {
         400,
       );
     }
+
+    /* Issue new Id */
+    todo.id = await this.storage.getIndex(redisIndexKey);
+    await this.updateTodo(todo.id, todo);
+
+    return todo;
   }
 
   async find(offset: number, limit: number): Promise<Todo[]> {
@@ -63,14 +51,14 @@ export class TodosService {
   }
 
   async update(id: number, todo: Todo) {
-    /* Case 1: Reference is not exist */
+    /* Case 1: check references are exist */
     const references = await Promise.all(
       todo.references.map(async value => {
         return this.storage.get(redisKey, value);
       }),
     );
 
-    if (references.filter(v => v == null).length !== 0) {
+    if (references.some((v) => v == null)) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
@@ -95,8 +83,7 @@ export class TodosService {
     todo.updatedAt = new Date();
 
     const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
-    await this.updateGraph(id, oldTodo.references, todo.references);
-    return await this.storage.set(redisKey, todo.id, todo);
+    await this.updateTodo(id, todo, oldTodo);
   }
 
   async patch(id, todo: Partial<Todo>) {
@@ -121,29 +108,41 @@ export class TodosService {
 
     const newTodo = Object.assign(oldTodo, todo);
 
-    await this.graph.setComplete(id);
-    return await this.storage.set(redisKey, id, newTodo);
+    await this.completeTodo(newTodo.id, newTodo);
   }
 
-  async count() {
+  async count(): Promise<number> {
     return await this.storage.getGroupSize(redisKey);
   }
 
-  private async updateGraph(
-    vertex: number,
-    oldRefs: number[],
-    newRefs: number[],
+  private async updateTodo(
+    todoId: number,
+    newTodo: Todo,
+    oldTodo?: Todo,
   ): Promise<void> {
+    if (oldTodo) {
+      await Promise.all(
+        oldTodo.references.map(async value => {
+          return this.graph.unsetEdge(todoId, value);
+        }),
+      )
+    }
+
     await Promise.all(
-      oldRefs.map(async value => {
-        return this.graph.unsetEdge(vertex, value);
+      newTodo.references.map(async value => {
+        return this.graph.setEdge(todoId, value);
       }),
     );
 
-    await Promise.all(
-      newRefs.map(async value => {
-        return this.graph.setEdge(vertex, value);
-      }),
-    );
+    await this.storage.set(redisKey, todoId, newTodo);
+  }
+
+  private async completeTodo(
+    todoId: number,
+    newTodo: Todo,
+  ): Promise<void> {
+
+    await this.graph.setComplete(todoId);
+    await this.storage.set(redisKey, todoId, newTodo);
   }
 }

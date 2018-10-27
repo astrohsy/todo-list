@@ -66,13 +66,13 @@ export class TodoStorage {
     return this.redisClient.zcount(group, 0, Infinity);
   }
 
-  async getIndex(indexName): Promise<Value> {
+  async getIndex(indexName): Promise<number> {
     const res = await this.redisClient
       .multi()
       .incr(indexName)
       .get(indexName)
       .exec();
 
-    return res[0][1];
+    return Number(res[0][1]);
   }
 }
