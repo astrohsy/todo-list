@@ -87,6 +87,11 @@ class App extends Component {
   }
 
   handlePageNumberChange = (pageNum) => {
+    const pageNumLimit = Math.ceil(this.state.todoCount / this.state.pageSize);
+    if (pageNum < 1 || pageNum > pageNumLimit) {
+      return;
+    }
+
     this.setState({
       ...this.setState,
       pageNumber: Number(pageNum)
