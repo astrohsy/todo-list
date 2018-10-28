@@ -24,7 +24,7 @@ export class TodosService {
       }),
     );
 
-    if (references.some((v) => v == null)) {
+    if (references.some(v => v == null)) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
@@ -54,7 +54,7 @@ export class TodosService {
   async update(id: number, todo: Todo): Promise<Todo> {
     /* Case 1: check self-referencing */
 
-    if (todo.references.some((v) => v == id)) {
+    if (todo.references.some(v => v == id)) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
@@ -70,11 +70,11 @@ export class TodosService {
       }),
     );
 
-    if (references.some((v) => v == null)) {
+    if (references.some(v => v == null)) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: ErrorMessages.REFERENCES_TODO_IS_NOT_EXIST
+          response: ErrorMessages.REFERENCES_TODO_IS_NOT_EXIST,
         },
         400,
       );
@@ -149,7 +149,7 @@ export class TodosService {
         oldTodo.references.map(async value => {
           return this.graph.unsetEdge(todoId, value);
         }),
-      )
+      );
     }
 
     await Promise.all(
@@ -158,24 +158,16 @@ export class TodosService {
       }),
     );
 
-    return this.storage.set(redisKey, todoId, newTodo) as unknown as Todo;
+    return (this.storage.set(redisKey, todoId, newTodo) as unknown) as Todo;
   }
 
-  private async completeTodo(
-    todoId: number,
-    newTodo: Todo,
-  ): Promise<Todo> {
-
+  private async completeTodo(todoId: number, newTodo: Todo): Promise<Todo> {
     await this.graph.setComplete(todoId);
-    return this.storage.set(redisKey, todoId, newTodo) as unknown as Todo;
+    return (this.storage.set(redisKey, todoId, newTodo) as unknown) as Todo;
   }
 
-  private async uncompleteTodo(
-    todoId: number,
-    newTodo: Todo,
-  ): Promise<Todo> {
-
+  private async uncompleteTodo(todoId: number, newTodo: Todo): Promise<Todo> {
     await this.graph.unsetComplete(todoId);
-    return this.storage.set(redisKey, todoId, newTodo) as unknown as Todo;
+    return (this.storage.set(redisKey, todoId, newTodo) as unknown) as Todo;
   }
 }

@@ -36,10 +36,7 @@ describe('TodosService', () => {
         }),
       );
 
-      const getIndexMock = jest.spyOn(
-        TodoStorage.prototype,
-        'getIndex',
-      );
+      const getIndexMock = jest.spyOn(TodoStorage.prototype, 'getIndex');
       getIndexMock.mockImplementationOnce(
         jest.fn(() => {
           mockTodoIndex += 1;
@@ -79,10 +76,7 @@ describe('TodosService', () => {
       );
       setMock.mockClear();
 
-      const getIndexMock = jest.spyOn(
-        TodoStorage.prototype,
-        'getIndex',
-      );
+      const getIndexMock = jest.spyOn(TodoStorage.prototype, 'getIndex');
       getIndexMock.mockImplementation(
         jest.fn(() => {
           mockTodoIndex += 1;
@@ -120,10 +114,7 @@ describe('TodosService', () => {
         }),
       );
 
-      const getIndexMock = jest.spyOn(
-        TodoStorage.prototype,
-        'getIndex',
-      );
+      const getIndexMock = jest.spyOn(TodoStorage.prototype, 'getIndex');
       getIndexMock.mockImplementationOnce(
         jest.fn(() => {
           mockTodoIndex += 1;
@@ -142,7 +133,7 @@ describe('TodosService', () => {
       item.id = mockTodoIndex;
       item.references = item.references.filter((v, i, a) => a.indexOf(v) === i);
 
-      await expect(service.create(item)).resolves.toBeDefined()
+      await expect(service.create(item)).resolves.toBeDefined();
       expect(setMock).toHaveBeenCalledWith(redisKey, mockTodoIndex, item);
     });
   });
@@ -186,9 +177,9 @@ describe('TodosService', () => {
         {
           text: 'test3',
           references: [],
-          createdAt: new Date,
+          createdAt: new Date(),
           id: 3,
-        }
+        },
       ] as Todo[];
 
       const getMock = jest.spyOn(TodoStorage.prototype, 'get');
@@ -236,9 +227,9 @@ describe('TodosService', () => {
         {
           text: 'test3',
           references: [],
-          createdAt: new Date,
+          createdAt: new Date(),
           id: 3,
-        }
+        },
       ] as Todo[];
 
       const getMock = jest.spyOn(TodoStorage.prototype, 'get');
@@ -260,7 +251,7 @@ describe('TodosService', () => {
 
       // Add a cycle reference
       const newTodo = Object.assign(testTodos[3], { references: [1] });
-  
+
       await expect(service.update(3, newTodo)).rejects.toBeDefined();
       //expect(setMock).toBeCalledWith(redisKey, 3, newTodo);
     });
@@ -285,9 +276,9 @@ describe('TodosService', () => {
         {
           text: 'test3',
           references: [],
-          createdAt: new Date,
+          createdAt: new Date(),
           id: 3,
-        }
+        },
       ] as Todo[];
 
       const getMock = jest.spyOn(TodoStorage.prototype, 'get');
@@ -316,7 +307,7 @@ describe('TodosService', () => {
 
       let error;
       try {
-        await service.update(1, newTodo)
+        await service.update(1, newTodo);
       } catch (e) {
         error = e;
       }
@@ -328,7 +319,6 @@ describe('TodosService', () => {
   });
 
   describe('patch', () => {
-    
     it('should patch a todo if checkable', async () => {
       const testTodos = [
         null,
@@ -354,25 +344,30 @@ describe('TodosService', () => {
         }),
       );
 
-      const shouldBeCompletedMock = jest.spyOn(Graph.prototype, 'shouldBeCompleted');
-      shouldBeCompletedMock.mockImplementation(jest.fn(() => {
-        return Promise.resolve(true);
-      }));
+      const shouldBeCompletedMock = jest.spyOn(
+        Graph.prototype,
+        'shouldBeCompleted',
+      );
+      shouldBeCompletedMock.mockImplementation(
+        jest.fn(() => {
+          return Promise.resolve(true);
+        }),
+      );
 
       const setComplete = jest.spyOn(Graph.prototype, 'setComplete');
-      setComplete.mockImplementationOnce(
-        jest.fn(),
-      );
-  
+      setComplete.mockImplementationOnce(jest.fn());
+
       const completedAt: Partial<Todo> = {
-        completedAt: new Date()
+        completedAt: new Date(),
       };
-  
-      await expect(service.patch(testTodos[1].id, completedAt)).resolves.toBeDefined();
+
+      await expect(
+        service.patch(testTodos[1].id, completedAt),
+      ).resolves.toBeDefined();
       expect(setMock).toBeCalled();
       expect(setComplete).toBeCalled();
     });
-  
+
     it('should not patch a todo with invalid references', async () => {
       const testTodos = [
         null,
@@ -388,35 +383,40 @@ describe('TodosService', () => {
           createdAt: new Date(),
           // No completedAt has provided
           id: 2,
-        }
+        },
       ] as Todo[];
-  
+
       const getMock = jest.spyOn(TodoStorage.prototype, 'get');
       getMock.mockImplementation(
         jest.fn((redisGroup, key) => {
           return Promise.resolve(testTodos[key]);
         }),
       );
-  
+
       const setMock = jest.spyOn(TodoStorage.prototype, 'set');
       setMock.mockImplementation(jest.fn());
       setMock.mockClear();
 
-      const shouldBeCompletedMock = jest.spyOn(Graph.prototype, 'shouldBeCompleted');
-      shouldBeCompletedMock.mockImplementation(jest.fn(() => {
-        return Promise.resolve(false);
-      }));
+      const shouldBeCompletedMock = jest.spyOn(
+        Graph.prototype,
+        'shouldBeCompleted',
+      );
+      shouldBeCompletedMock.mockImplementation(
+        jest.fn(() => {
+          return Promise.resolve(false);
+        }),
+      );
 
       const setComplete = jest.spyOn(Graph.prototype, 'setComplete');
-      setComplete.mockImplementationOnce(
-        jest.fn(),
-      );
-  
+      setComplete.mockImplementationOnce(jest.fn());
+
       const completedAt: Partial<Todo> = {
-        completedAt: new Date()
+        completedAt: new Date(),
       };
-  
-      await expect(service.patch(testTodos[1].id, completedAt)).rejects.toBeDefined();
+
+      await expect(
+        service.patch(testTodos[1].id, completedAt),
+      ).rejects.toBeDefined();
       expect(setMock).not.toBeCalled();
     });
   });

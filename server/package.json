@@ -22,11 +22,8 @@
   "dependencies": {
     "@nestjs/common": "^5.1.0",
     "@nestjs/core": "^5.1.0",
-    "bluebird": "^3.5.2",
+    "@types/jest": "^23.3.8",
     "class-validator": "^0.9.1",
-    "fastify": "^1.12.1",
-    "fastify-formbody": "^2.0.1",
-    "fastify-static": "^0.14.0",
     "ioredis": "^4.2.0",
     "reflect-metadata": "^0.1.12",
     "rxjs": "^6.2.2",
@@ -34,9 +31,7 @@
   },
   "devDependencies": {
     "@nestjs/testing": "^5.1.0",
-    "@types/bluebird": "^3.5.24",
     "@types/ioredis": "^4.0.3",
-    "@types/jest": "^23.3.7",
     "@types/node": "^10.7.1",
     "@types/supertest": "^2.0.5",
     "jest": "^23.5.0",

@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 
 import { Todo } from './interfaces/todo.interface';
 import { TodosService } from './todos.service';
@@ -52,7 +62,10 @@ export class TodosController {
 
   @Put(':id')
   @HttpCode(200)
-  async update(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator): Promise<ResponseWrapper<Todo>> {
+  async update(
+    @Param('id') id,
+    @Body() updateTodoBody: UpdateTodoValidator,
+  ): Promise<ResponseWrapper<Todo>> {
     const data = await this.todosService.update(id, updateTodoBody);
 
     return {
@@ -62,7 +75,10 @@ export class TodosController {
 
   @Patch(':id')
   @HttpCode(200)
-  async complete(@Param('id') id, @Body() updateTodoBody: UpdateTodoValidator): Promise<ResponseWrapper<Todo>> {
+  async complete(
+    @Param('id') id,
+    @Body() updateTodoBody: UpdateTodoValidator,
+  ): Promise<ResponseWrapper<Todo>> {
     const data = await this.todosService.patch(id, updateTodoBody);
 
     return {
