@@ -47,7 +47,7 @@ class App extends Component {
       .catch((error) => {
         setTimeout(() => {
           this.reloadTodos(pageNumber, pageSize, tryCnt+1);
-        }, 100 * (tryCnt + 1))
+        }, 200 * (tryCnt + 1))
       })
   }
 
@@ -94,7 +94,12 @@ class App extends Component {
         this.reloadTodos();
     }).catch((error) => {
       if (error.response) {
-        alert(`${error.response.status} Error 발생: ${error.response.data.response}`);
+        const  response = error.response;
+        alert(`${response.status} ${response.statusText }: ${
+          typeof(response.data.message) === 'object' ? 
+          JSON.stringify(response.data.message[0].constraints) :
+          response.data.message
+         }`);
       }
     });
   }
@@ -117,7 +122,12 @@ class App extends Component {
       })
       .catch((error) => {
         if (error.response) {
-          alert(`${error.response.status} Error 발생: ${error.response.data.response}`);
+          const  response = error.response;
+          alert(`${response.status} ${response.statusText }: ${
+            typeof(response.data.message) === 'object' ? 
+            JSON.stringify(response.data.message[0].constraints) :
+            response.data.message
+           }`);
         }
       });
   }
@@ -136,11 +146,15 @@ class App extends Component {
     
     axios.put(API_SERVER_URL + `todos/${todo.id}` , requestForm)
       .then((response) => {
-        //const trailingText = (response.data.references.length === 0) ? '' :' @'.concat(response.data.references.join(' @'));
         this.reloadTodos();
     }).catch((error) => {
       if (error.response) {
-        alert(`${error.response.status} Error 발생: ${error.response.data.response}`);
+        const  response = error.response;
+        alert(`${response.status} ${response.statusText }: ${
+          typeof(response.data.message) === 'object' ? 
+          JSON.stringify(response.data.message[0].constraints) :
+          response.data.message
+         }`);
       }
     })
   }

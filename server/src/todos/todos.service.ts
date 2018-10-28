@@ -28,7 +28,7 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: ErrorMessages.REFERENCES_TODO_IS_NOT_EXIST,
+          message: ErrorMessages.REFERENCES_TODO_IS_NOT_EXIST,
         },
         400,
       );
@@ -58,7 +58,7 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: ErrorMessages.TODO_REFERENCE_ITSELF,
+          message: ErrorMessages.TODO_REFERENCE_ITSELF,
         },
         400,
       );
@@ -74,7 +74,7 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: ErrorMessages.REFERENCES_TODO_IS_NOT_EXIST,
+          message: ErrorMessages.REFERENCES_TODO_IS_NOT_EXIST,
         },
         400,
       );
@@ -85,7 +85,7 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: ErrorMessages.WILL_BE_CYCLE_WITH_TODO,
+          message: ErrorMessages.WILL_BE_CYCLE_WITH_TODO,
         },
         400,
       );
@@ -107,7 +107,7 @@ export class TodosService {
         throw new HttpException(
           {
             status: HttpStatus.BAD_REQUEST,
-            response: ErrorMessages.DEREFERENCES_TODO_HAS_COMPLETED,
+            message: ErrorMessages.DEREFERENCES_TODO_HAS_COMPLETED,
           },
           400,
         );
@@ -122,7 +122,7 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: ErrorMessages.REFERENCES_TODO_HAS_UNCOMPLETED,
+          message: ErrorMessages.REFERENCES_TODO_HAS_UNCOMPLETED,
         },
         400,
       );
