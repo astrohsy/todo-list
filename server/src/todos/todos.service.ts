@@ -91,8 +91,6 @@ export class TodosService {
       );
     }
 
-    todo.updatedAt = new Date();
-
     const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
 
     return this.updateTodo(id, todo, oldTodo);

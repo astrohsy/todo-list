@@ -1,7 +1,8 @@
-import { IsArray, IsString, IsInt, IsDate } from 'class-validator';
+import { IsArray, IsDateString, IsInt, IsString, MinLength } from 'class-validator';
 
 export class UpdateTodoValidator {
   @IsString()
+  @MinLength(1)
   readonly text: string;
 
   @IsArray()
@@ -10,12 +11,12 @@ export class UpdateTodoValidator {
   @IsInt()
   readonly id: number;
 
-  @IsDate()
+  @IsDateString()
   readonly createdAt: Date;
 
-  @IsDate()
+  @IsDateString()
   readonly updatedAt: Date;
 
-  @IsDate()
+  @IsDateString()
   readonly completedAt: Date;
 }
