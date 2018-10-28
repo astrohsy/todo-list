@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-
-import { faEdit } from '@fortawesome/free-solid-svg-icons'
-
 import './TodoItem.css';
+
+import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import * as moment from 'moment';
+import React, { Component } from 'react';
 
 class TodoItem extends Component {
   state = {
@@ -37,12 +37,22 @@ class TodoItem extends Component {
           completedAt && (<div className="check-mark">✓</div>)
         }
         <div className='todo-date-group'>
-          <div className='todo-date'>{createdAt ? `생성일시: ${createdAt}` : ''}</div>
-          <div className='todo-date'>{updatedAt ? `수정일시: ${updatedAt}` : ''}</div>
-          <div className='todo-date'>{completedAt ? `완료일시: ${completedAt}` : ''}</div>
+          <div className='todo-date'>{createdAt ? `생성일시: ${this.dateFormatter(createdAt)}` : ''}</div>
+          <div className='todo-date'>{updatedAt ? `수정일시: ${this.dateFormatter(updatedAt)}` : ''}</div>
+          <div className='todo-date'>{completedAt ? `완료일시: ${this.dateFormatter(completedAt)}` : ''}</div>
         </div>
       </div>
     );
+  }
+
+  dateFormatter = (stringDate) => {
+    if (stringDate == null || stringDate === '') {
+      return null;
+    }
+
+    const momentDate = new moment(stringDate);
+    const formattedDate = momentDate.format('YYYY-MM-DD hh:mm:ss');
+    return formattedDate;
   }
 
   onModifyClick = () => {
@@ -90,5 +100,6 @@ class TodoItem extends Component {
     });
   }
 }
+
 
 export default TodoItem;

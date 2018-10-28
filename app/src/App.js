@@ -1,5 +1,4 @@
 import axios from 'axios';
-import * as moment from 'moment';
 import React, { Component } from 'react';
 
 import Form from './components/Form';
@@ -36,13 +35,7 @@ class App extends Component {
       axios.get(API_SERVER_URL + `todos?offset=${offset}&limit=${limit}`)
       .then((response) => {
         const todoCount = response.data.metadata.count;
-        const todos = response.data.data.map( (todo) => {
-          todo.createdAt = this.dateFormatter(todo.createdAt);
-          todo.updatedAt = this.dateFormatter(todo.updatedAt);
-          todo.completedAt = this.dateFormatter(todo.completedAt);
-
-          return todo;
-        });
+        const todos = response.data.data;
 
         this.setState({
           ...this.state,
@@ -56,16 +49,6 @@ class App extends Component {
           this.reloadTodos(pageNumber, pageSize, tryCnt+1);
         }, 100 * (tryCnt + 1))
       })
-  }
-
-  dateFormatter = (stringDate) => {
-    if (stringDate == null || stringDate === '') {
-      return null;
-    }
-
-    const momentDate = new moment(stringDate);
-    const formattedDate = momentDate.format('YYYY-MM-DD hh:mm:ss');
-    return formattedDate;
   }
 
   handleChange = (e) => {
@@ -124,6 +107,7 @@ class App extends Component {
 
     const requestForm = {
       text,
+      createdAt: new Date(),
       references: references.map((value) => Number(value))
     }
     
@@ -146,6 +130,7 @@ class App extends Component {
     const requestForm = {
       ...todo,
       text,
+      updatedAt: new Date(),
       references: references.map((value) => Number(value))
     }
     
