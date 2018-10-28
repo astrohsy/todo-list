@@ -97,7 +97,8 @@ ZRANGEBYSCORE 찾고 반환된 결과를 Reverse 하는 방식으로 구현하�
 │   ├── main.ts
 │   ├── todos
 │   │   ├── contants
-│   │   │   └── todos.contants.ts
+│   │   │   │   ├── todos.environments.ts
+│   │   │   │   └── todos.messages.ts
 │   │   ├── interfaces
 │   │   │   └── todo.interface.ts
 │   │   ├── todos.controller.ts
@@ -132,7 +133,7 @@ ZRANGEBYSCORE 찾고 반환된 결과를 Reverse 하는 방식으로 구현하�
 
 #### Docker를 활용한 빌드 및 실행 방법
 
-> 실행하고 나서 서버가 올라오는 시간이 걸리기 때문에 5초 정도 이후에 `http://localhost:3000`으로 접속하여 주시기 다랍니다.
+> 서버가 올라오는 시간이 걸리기 때문에 실행하고 나서 5초 정도 이후에 `http://localhost:3000`으로 접속하여 주시기 바랍니다.
 
 
 ```sh
