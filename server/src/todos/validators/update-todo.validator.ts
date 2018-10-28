@@ -1,4 +1,10 @@
-import { IsArray, IsDateString, IsInt, IsString, MinLength } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsInt,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class UpdateTodoValidator {
   @IsString()

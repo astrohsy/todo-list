@@ -2,11 +2,11 @@ import 'jest';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { TodosService } from './todos.service';
-import { Todo } from './interfaces/todo.interface';
+import { Graph } from '../utils/graph/graph';
 import { TodoStorage } from '../utils/storage/storage';
 import { redisKey } from './contants/todos.environments';
-import { Graph } from '../utils/graph/graph';
+import { Todo } from './interfaces/todo.interface';
+import { TodosService } from './todos.service';
 
 describe('TodosService', () => {
   let service: TodosService;

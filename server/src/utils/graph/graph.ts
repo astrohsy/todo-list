@@ -26,13 +26,13 @@ export class Graph {
 
   constructor() {
     if (process.env.NODE_ENV === 'PROD') {
-      this.redisClient = new Redis({ 
+      this.redisClient = new Redis({
         host: 'redis',
-        dropBufferSupport: true
+        dropBufferSupport: true,
       });
     } else {
       this.redisClient = new Redis({ dropBufferSupport: true });
-    } 
+    }
   }
 
   async setEdge(from: number, to: number) {

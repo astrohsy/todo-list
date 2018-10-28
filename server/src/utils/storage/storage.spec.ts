@@ -1,8 +1,9 @@
 import 'jest';
 
-import { TodoStorage } from './storage';
-import { Todo } from '../../todos/interfaces/todo.interface';
 import * as Redis from 'ioredis';
+
+import { Todo } from '../../todos/interfaces/todo.interface';
+import { TodoStorage } from './storage';
 
 describe('Storage Util', () => {
   let storage: TodoStorage;

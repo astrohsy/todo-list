@@ -29,7 +29,6 @@ export class TodosController {
   async create(
     @Body() createTodoBody: CreateTodoValidator,
   ): Promise<ResponseWrapper<Todo>> {
-
     let todo: Todo = {
       ...createTodoBody,
       createdAt: new Date(createTodoBody.createdAt),
@@ -67,10 +66,9 @@ export class TodosController {
     @Param('id') id,
     @Body() updateTodoBody: UpdateTodoValidator,
   ): Promise<ResponseWrapper<Todo>> {
-
     const todo: Todo = {
-      ...updateTodoBody
-    }
+      ...updateTodoBody,
+    };
     const data = await this.todosService.update(id, todo);
 
     return {
@@ -85,8 +83,8 @@ export class TodosController {
     @Body() updateTodoBody: UpdateTodoValidator,
   ): Promise<ResponseWrapper<Todo>> {
     const todo: Todo = {
-      ...updateTodoBody
-    }
+      ...updateTodoBody,
+    };
 
     const data = await this.todosService.patch(id, todo);
 

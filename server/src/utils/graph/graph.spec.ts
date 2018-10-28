@@ -1,7 +1,8 @@
 import 'jest';
 
-import { Graph } from './graph';
 import * as Redis from 'ioredis';
+
+import { Graph } from './graph';
 
 const testKey = 'graph-test-*';
 

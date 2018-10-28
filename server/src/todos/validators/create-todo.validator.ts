@@ -1,4 +1,4 @@
-import { IsArray, IsString, MinLength, IsDateString } from 'class-validator';
+import { IsArray, IsDateString, IsString, MinLength } from 'class-validator';
 
 export class CreateTodoValidator {
   @IsString()
