@@ -1,7 +1,7 @@
 import * as Redis from 'ioredis';
+import { Todo } from 'todos/interfaces/todo.interface';
 
-type Value = object | string | number;
-const group = 'todo';
+type Value = Todo | string | number;
 
 interface TodoStorageConfigurations {
   isTest: boolean;
@@ -20,14 +20,17 @@ export class TodoStorage {
     }
   }
 
-  async set(group: string, key: number, value: Value) {
+  async set(group: string, key: number, value: Value): Promise<Value> {
     const convertedValue = JSON.stringify(value);
 
-    await this.redisClient
+    const res = await this.redisClient
       .multi()
       .zremrangebyscore(group, key, key)
       .zadd(group, key, convertedValue)
+      .zrangebyscore(group, key, key)
       .exec();
+
+    return JSON.parse(res[2][1]);
   }
 
   async get(group: string, key: number): Promise<Value> {

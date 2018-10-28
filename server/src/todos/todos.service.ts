@@ -1,9 +1,10 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
-import { Todo } from './interfaces/todo.interface';
-import { TodoStorage } from '../utils/storage/storage';
-import { redisKey, redisIndexKey } from './contants/todos.contants';
 import { Graph } from '../utils/graph/graph';
+import { TodoStorage } from '../utils/storage/storage';
+import { redisIndexKey, redisKey } from './contants/todos.environments';
+import * as ErrorMessages from './contants/todos.messages';
+import { Todo } from './interfaces/todo.interface';
 
 @Injectable()
 export class TodosService {
@@ -27,7 +28,7 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: '참조하는 Todo 중 존재하지 않는 Todo id가 있습니다.',
+          response: ErrorMessages.REFERENCES_TODO_IS_NOT_EXIST,
         },
         400,
       );
@@ -50,8 +51,19 @@ export class TodosService {
     return res;
   }
 
-  async update(id: number, todo: Todo) {
-    /* Case 1: check references are exist */
+  async update(id: number, todo: Todo): Promise<Todo> {
+    /* Case 1: check self-referencing */
+
+    if (todo.references.some((v) => v == id)) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          response: ErrorMessages.TODO_REFERENCE_ITSELF,
+        },
+        400,
+      );
+    }
+    /* Case 2: check references are exist */
     const references = await Promise.all(
       todo.references.map(async value => {
         return this.storage.get(redisKey, value);
@@ -62,19 +74,18 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: '참조하는 Todo 중 존재하지 않는 Todo id가 있습니다.',
+          response: ErrorMessages.REFERENCES_TODO_IS_NOT_EXIST
         },
         400,
       );
     }
 
-    /* Case 2: Cycle check */
+    /* Case 3: Cycle check */
     if (await this.graph.willBeCycle(id, todo.references)) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response:
-            '참조가 걸린 Todo에 사이클 발생으로 완료 불가능한 구조입니다.',
+          response: ErrorMessages.WILL_BE_CYCLE_WITH_TODO,
         },
         400,
       );
@@ -83,10 +94,11 @@ export class TodosService {
     todo.updatedAt = new Date();
 
     const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
-    return await this.updateTodo(id, todo, oldTodo);
+
+    return this.updateTodo(id, todo, oldTodo);
   }
 
-  async patch(id: number, todo: Partial<Todo>) {
+  async patch(id: number, todo: Partial<Todo>): Promise<Todo> {
     const oldTodo = (await this.storage.get(redisKey, id)) as Todo;
 
     /* Handle uncheck request */
@@ -97,13 +109,13 @@ export class TodosService {
         throw new HttpException(
           {
             status: HttpStatus.BAD_REQUEST,
-            response: '참조가 걸린 Todo 중 완료 상태인 Todo가 있습니다.',
+            response: ErrorMessages.DEREFERENCES_TODO_HAS_COMPLETED,
           },
           400,
         );
       }
       const newTodo = Object.assign(oldTodo, todo);
-      return await this.uncompleteTodo(oldTodo.id, newTodo);
+      return this.uncompleteTodo(oldTodo.id, newTodo);
     }
 
     /* Check if all the references are completed */
@@ -112,20 +124,15 @@ export class TodosService {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          response: '참조가 걸린 Todo 중 완료가 안된 Todo가 있습니다.',
+          response: ErrorMessages.REFERENCES_TODO_HAS_UNCOMPLETED,
         },
         400,
       );
     }
 
-    // Can not update complete time, once it had been completed
-    if (!(oldTodo.completedAt == null && todo.completedAt !== null)) {
-      return null;
-    }
-
     const newTodo = Object.assign(oldTodo, todo);
 
-    return await this.completeTodo(newTodo.id, newTodo);
+    return this.completeTodo(newTodo.id, newTodo);
   }
 
   async count(): Promise<number> {
@@ -136,7 +143,7 @@ export class TodosService {
     todoId: number,
     newTodo: Todo,
     oldTodo?: Todo,
-  ): Promise<void> {
+  ): Promise<Todo> {
     if (oldTodo) {
       await Promise.all(
         oldTodo.references.map(async value => {
@@ -151,24 +158,24 @@ export class TodosService {
       }),
     );
 
-    await this.storage.set(redisKey, todoId, newTodo);
+    return this.storage.set(redisKey, todoId, newTodo) as unknown as Todo;
   }
 
   private async completeTodo(
     todoId: number,
     newTodo: Todo,
-  ): Promise<void> {
+  ): Promise<Todo> {
 
     await this.graph.setComplete(todoId);
-    await this.storage.set(redisKey, todoId, newTodo);
+    return this.storage.set(redisKey, todoId, newTodo) as unknown as Todo;
   }
 
   private async uncompleteTodo(
     todoId: number,
     newTodo: Todo,
-  ): Promise<void> {
+  ): Promise<Todo> {
 
     await this.graph.unsetComplete(todoId);
-    await this.storage.set(redisKey, todoId, newTodo);
+    return this.storage.set(redisKey, todoId, newTodo) as unknown as Todo;
   }
 }

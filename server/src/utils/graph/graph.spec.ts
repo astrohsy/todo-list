@@ -124,7 +124,7 @@ describe('Graph Util', () => {
       expect(res).toEqual(true);
     });
 
-    it('should return true on on edges to checked vertex', async () => {
+    it('should return true on edges to checked vertex', async () => {
       await Promise.all([g.setEdge(1, 5), g.setEdge(10, 5)]);
 
       await g.setComplete(1);
@@ -134,10 +134,17 @@ describe('Graph Util', () => {
       expect(res).toEqual(true);
     });
 
-    it('should return false on on edges to unchecked vertex', async () => {
+    it('should return false on edges to unchecked vertex', async () => {
       await Promise.all([g.setEdge(1, 5), g.setEdge(10, 5)]);
 
       await g.setComplete(1);
+
+      const res = await g.shouldBeCompleted(5);
+      expect(res).toEqual(false);
+    });
+
+    it('should return false on edges to all unchecked vertex', async () => {
+      await Promise.all([g.setEdge(1, 5), g.setEdge(10, 5)]);
 
       const res = await g.shouldBeCompleted(5);
       expect(res).toEqual(false);

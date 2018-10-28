@@ -5,7 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TodosService } from './todos.service';
 import { Todo } from './interfaces/todo.interface';
 import { TodoStorage } from '../utils/storage/storage';
-import { redisKey } from './contants/todos.contants';
+import { redisKey } from './contants/todos.environments';
 import { Graph } from '../utils/graph/graph';
 
 describe('TodosService', () => {
@@ -55,15 +55,8 @@ describe('TodosService', () => {
         completedAt: null,
       };
 
-      let error;
-      try {
-        await service.create(item);
-      } catch (e) {
-        error = e;
-      }
-
       item.id = mockTodoIndex;
-      expect(error).not.toBeDefined();
+      await expect(service.create(item)).resolves.toBeDefined();
       expect(setMock).toHaveBeenCalledWith(redisKey, mockTodoIndex, item);
     });
 
@@ -106,14 +99,7 @@ describe('TodosService', () => {
         completedAt: null,
       };
 
-      let error;
-      try {
-        await service.create(item);
-      } catch (e) {
-        error = e;
-      }
-
-      expect(error).toBeDefined();
+      await expect(service.create(item)).rejects.toBeDefined();
       expect(setMock).not.toHaveBeenCalled();
     });
 
@@ -130,7 +116,7 @@ describe('TodosService', () => {
       const setMock = jest.spyOn(TodoStorage.prototype, 'set');
       setMock.mockImplementationOnce(
         jest.fn(() => {
-          return Promise.resolve();
+          return Promise.resolve(true);
         }),
       );
 
@@ -153,17 +139,10 @@ describe('TodosService', () => {
         completedAt: null,
       };
 
-      let error;
-      try {
-        await service.create(item);
-      } catch (e) {
-        error = e;
-      }
-
       item.id = mockTodoIndex;
       item.references = item.references.filter((v, i, a) => a.indexOf(v) === i);
 
-      expect(error).not.toBeDefined();
+      await expect(service.create(item)).resolves.toBeDefined()
       expect(setMock).toHaveBeenCalledWith(redisKey, mockTodoIndex, item);
     });
   });
@@ -219,6 +198,13 @@ describe('TodosService', () => {
         }),
       );
 
+      const setMock = jest.spyOn(TodoStorage.prototype, 'set');
+      setMock.mockImplementationOnce(
+        jest.fn(() => {
+          return Promise.resolve(true);
+        }),
+      );
+
       const willBeCycleMock = jest.spyOn(Graph.prototype, 'willBeCycle');
       willBeCycleMock.mockImplementation(
         jest.fn((redisGroup, key) => {
@@ -226,15 +212,8 @@ describe('TodosService', () => {
         }),
       );
 
-      let error;
-      try {
-        const newTodo = Object.assign(testTodos[3], { references: [1] });
-        await service.update(3, newTodo)
-      } catch (e) {
-        error = e;
-      }
-
-      expect(error).not.toBeDefined();
+      const newTodo = Object.assign(testTodos[3], { references: [1] });
+      await expect(service.update(3, newTodo)).resolves.toBeDefined();
     });
 
     it('should not update on cycle', async () => {
@@ -281,15 +260,8 @@ describe('TodosService', () => {
 
       // Add a cycle reference
       const newTodo = Object.assign(testTodos[3], { references: [1] });
-
-      let error;
-      try {
-        await service.update(3, newTodo)
-      } catch (e) {
-        error = e;
-      }
-
-      expect(error).toBeDefined();
+  
+      await expect(service.update(3, newTodo)).rejects.toBeDefined();
       //expect(setMock).toBeCalledWith(redisKey, 3, newTodo);
     });
 
@@ -331,12 +303,25 @@ describe('TodosService', () => {
       // 4, 5 is invalid
       const newTodo = Object.assign(testTodos[3], { references: [2, 3, 4, 5] });
 
+      await expect(service.update(1, newTodo)).rejects.toBeDefined();
+    });
+
+    it('should not update self-referencing todo', async () => {
+      const newTodo = {
+        text: 'test',
+        references: [1],
+        createdAt: new Date(),
+        id: 1,
+      };
+
       let error;
       try {
         await service.update(1, newTodo)
       } catch (e) {
         error = e;
       }
+
+      await expect(service.update(1, newTodo)).rejects.toBeDefined();
 
       expect(error).toBeDefined();
     });
@@ -356,8 +341,10 @@ describe('TodosService', () => {
       ];
 
       const setMock = jest.spyOn(TodoStorage.prototype, 'set');
-      setMock.mockImplementation(
-        jest.fn(),
+      setMock.mockImplementationOnce(
+        jest.fn(() => {
+          return Promise.resolve(true);
+        }),
       );
 
       const getMock = jest.spyOn(TodoStorage.prototype, 'get');
@@ -381,14 +368,7 @@ describe('TodosService', () => {
         completedAt: new Date()
       };
   
-      let error;
-      try {
-        await service.patch(testTodos[1].id, completedAt)
-      } catch (e) {
-        error = e;
-      }
-  
-      expect(error).not.toBeDefined();
+      await expect(service.patch(testTodos[1].id, completedAt)).resolves.toBeDefined();
       expect(setMock).toBeCalled();
       expect(setComplete).toBeCalled();
     });
@@ -436,14 +416,7 @@ describe('TodosService', () => {
         completedAt: new Date()
       };
   
-      let error;
-      try {
-        await service.patch(testTodos[1].id, completedAt)
-      } catch (e) {
-        error = e;
-      }
-  
-      expect(error).toBeDefined();
+      await expect(service.patch(testTodos[1].id, completedAt)).rejects.toBeDefined();
       expect(setMock).not.toBeCalled();
     });
   });
