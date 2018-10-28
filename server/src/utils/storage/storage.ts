@@ -16,7 +16,15 @@ export class TodoStorage {
       this.redisClient = Redis.prototype;
     } else {
       // Connect to a real redis server
-      this.redisClient = new Redis({ dropBufferSupport: true });
+
+      if (process.env.NODE_ENV === 'PROD') {
+        this.redisClient = new Redis({ 
+          host: 'redis',
+          dropBufferSupport: true
+        });
+      } else {
+        this.redisClient = new Redis({ dropBufferSupport: true });
+      } 
     }
   }
 
